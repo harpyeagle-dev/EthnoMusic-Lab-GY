@@ -500,7 +500,7 @@ function initializeWorldMap(cultures) {
         });
     });
     
-    // Add legend event listeners
+        // Add legend event listeners
     if (legendElement) legendElement.innerHTML = legendHTML;
     legendElement?.querySelectorAll('[data-region]').forEach(item => {
         item.addEventListener('click', () => {
@@ -527,6 +527,7 @@ function initializeWorldMap(cultures) {
     setTimeout(() => map.invalidateSize(), 200);
     } catch (err) {
         console.error('World map init failed:', err);
+        mapElement.innerHTML = '<p style="padding: 20px; background: #ffecec; border: 1px solid #f5c2c2; border-radius: 8px; color: #c0392b;">Map could not load. Please refresh or check your connection.</p>';
     }
 }
 
