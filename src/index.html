@@ -7,7 +7,7 @@
     <meta name="theme-color" content="#667eea">
     <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-o9N1j8Mk3T1w6kBxKuX3sL7V1J4lZPpL1L0w0S0pC6k=" crossorigin="" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
 </head>
 <body>
     <div id="app">
@@ -58,7 +58,7 @@
             <!-- Explore Tab -->
             <section id="explore-tab" class="tab-content active">
                 <h2>Explore Music from Different Cultures</h2>
-                <p style="margin-bottom: 20px;">Explore music from <strong>18 different cultures</strong> around the world! Click on any culture to learn more.</p>
+                <p style="margin-bottom: 20px;">Explore music from <strong><span id="culture-count">18</span> different cultures</strong> around the world! Click on any culture to learn more.</p>
                 
                 <!-- World Map -->
                 <div style="margin-bottom: 30px; padding: 20px; background: #f5f5f5; border-radius: 12px; border: 2px solid #667eea;">

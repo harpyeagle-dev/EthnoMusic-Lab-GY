@@ -25,6 +25,7 @@ let looper = null;
 let pitchGame = null;
 let isDarkMode = false;
 let analysisCancelled = false;
+let worldMapInstance = null; // Cache Leaflet map to fix size when tab toggles
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', async () => {
@@ -131,6 +132,11 @@ function initializeTabs() {
         
         e.target.classList.add('active');
         document.getElementById(`${tabName}-tab`)?.classList.add('active');
+
+        // Ensure Leaflet map resizes correctly when Explore tab becomes visible
+        if (tabName === 'explore' && worldMapInstance) {
+            setTimeout(() => worldMapInstance.invalidateSize(), 100);
+        }
     });
     
     tabListenersInitialized = true;
@@ -380,8 +386,14 @@ function initializeAudioUnlockOverlay() {
 function initializeCultureExplorer() {
     const basicCultures = getAllCultures();
     const expandedCultures = getAllExpandedCultures();
-    const cultures = [...basicCultures, ...expandedCultures];
+    // Deduplicate by id (expanded data overrides base where duplicates exist)
+    const merged = [...basicCultures, ...expandedCultures];
+    const cultures = Array.from(new Map(merged.map(c => [c.id, c])).values());
     const cultureGrid = document.getElementById('culture-grid');
+    const cultureCount = document.getElementById('culture-count');
+    if (cultureCount) {
+        cultureCount.textContent = cultures.length.toString();
+    }
     
     // Initialize world map
     initializeWorldMap(cultures);
@@ -416,6 +428,7 @@ function initializeWorldMap(cultures) {
         
         // Create Leaflet map centered on world
         const map = L.map(mapElement).setView([20, 0], 2);
+        worldMapInstance = map;
         
         // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -423,6 +436,10 @@ function initializeWorldMap(cultures) {
             maxZoom: 19,
             minZoom: 2
         }).addTo(map);
+
+        map.whenReady(() => {
+            map.invalidateSize();
+        });
     
     // Define region coordinates (approx centers) and colors
     const regionCoordinates = {
@@ -523,8 +540,10 @@ function initializeWorldMap(cultures) {
     if (group.getLayers().length > 0) {
         map.fitBounds(group.getBounds().pad(0.1));
     }
-    // Ensure map tiles render correctly after layout
+    // Ensure map tiles render correctly after layout and when window resizes
     setTimeout(() => map.invalidateSize(), 200);
+    setTimeout(() => map.invalidateSize(), 600);
+    window.addEventListener('resize', () => map.invalidateSize());
     } catch (err) {
         console.error('World map init failed:', err);
         mapElement.innerHTML = '<p style="padding: 20px; background: #ffecec; border: 1px solid #f5c2c2; border-radius: 8px; color: #c0392b;">Map could not load. Please refresh or check your connection.</p>';
