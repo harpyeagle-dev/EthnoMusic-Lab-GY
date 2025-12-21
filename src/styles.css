@@ -574,6 +574,28 @@ h3 {
     border-radius: 12px;
 }
 
+/* Scale Selector Override - Override inherited white text from game-card */
+#scale-selector {
+    background-color: white !important;
+    padding: 15px !important;
+    border-radius: 8px !important;
+    margin-bottom: 15px !important;
+}
+
+#scale-selector select,
+#scale-selector input,
+.custom-dropdown-btn,
+.custom-dropdown-menu,
+.custom-dropdown-option {
+    background-color: white !important;
+    color: #333 !important;
+    border-color: #333 !important;
+}
+
+#scale-selector button {
+    color: #2c3e50 !important;
+}
+
 #recording-status {
     margin: 20px 0;
     font-size: 1.2em;
