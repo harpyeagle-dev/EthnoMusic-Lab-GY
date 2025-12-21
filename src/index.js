@@ -402,17 +402,27 @@ function initializeCultureExplorer() {
 
 function initializeWorldMap(cultures) {
     const mapElement = document.getElementById('world-map');
+    const legendElement = document.getElementById('map-legend');
+    const resetBtn = document.getElementById('reset-map-filter');
     if (!mapElement) return;
     
-    // Create Leaflet map centered on world
-    const map = L.map(mapElement).setView([20, 0], 2);
-    
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19,
-        minZoom: 2
-    }).addTo(map);
+    try {
+        // Ensure marker assets resolve in bundled builds (use CDN URLs to avoid bundler image loaders)
+        L.Icon.Default.mergeOptions({
+            iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+            iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+            shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png'
+        });
+        
+        // Create Leaflet map centered on world
+        const map = L.map(mapElement).setView([20, 0], 2);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19,
+            minZoom: 2
+        }).addTo(map);
     
     // Define region coordinates (approx centers) and colors
     const regionCoordinates = {
@@ -430,7 +440,6 @@ function initializeWorldMap(cultures) {
     
     // Group cultures by region and add markers
     const regionMarkers = {};
-    const regionLegend = document.getElementById('map-legend');
     let legendHTML = '';
     
     cultures.forEach(culture => {
@@ -492,14 +501,19 @@ function initializeWorldMap(cultures) {
     });
     
     // Add legend event listeners
-    regionLegend.innerHTML = legendHTML;
-    regionLegend.querySelectorAll('[data-region]').forEach(item => {
+    if (legendElement) legendElement.innerHTML = legendHTML;
+    legendElement?.querySelectorAll('[data-region]').forEach(item => {
         item.addEventListener('click', () => {
             const region = item.dataset.region;
             filterCulturesByRegion(region);
             item.style.backgroundColor = '#f0f0f0';
             item.style.transform = 'scale(1.05)';
         });
+    });
+    
+    // Reset filter
+    resetBtn?.addEventListener('click', () => {
+        filterCulturesByRegion(null);
     });
     
     // Fit map to bounds of all markers
@@ -509,6 +523,11 @@ function initializeWorldMap(cultures) {
     if (group.getLayers().length > 0) {
         map.fitBounds(group.getBounds().pad(0.1));
     }
+    // Ensure map tiles render correctly after layout
+    setTimeout(() => map.invalidateSize(), 200);
+    } catch (err) {
+        console.error('World map init failed:', err);
+    }
 }
 
 function filterCulturesByRegion(region) {
@@ -517,7 +536,7 @@ function filterCulturesByRegion(region) {
     
     cultureCards.forEach(card => {
         const cardRegion = card.querySelector('p').textContent;
-        if (cardRegion === region) {
+        if (!region || cardRegion === region) {
             card.style.display = 'block';
             card.style.opacity = '1';
             visibleCount++;
