@@ -386,9 +386,22 @@ function initializeAudioUnlockOverlay() {
 function initializeCultureExplorer() {
     const basicCultures = getAllCultures();
     const expandedCultures = getAllExpandedCultures();
-    // Deduplicate by id (expanded data overrides base where duplicates exist)
-    const merged = [...basicCultures, ...expandedCultures];
-    const cultures = Array.from(new Map(merged.map(c => [c.id, c])).values());
+
+    // Deduplicate: prefer expanded entries, then add basics not present
+    const byId = new Map();
+    expandedCultures.forEach(c => byId.set(c.id, c));
+    basicCultures.forEach(c => {
+        if (!byId.has(c.id)) byId.set(c.id, c);
+    });
+
+    // Extra guard: dedupe by name in case different ids share same culture name
+    const seenNames = new Set();
+    const cultures = Array.from(byId.values()).filter(c => {
+        const key = (c.name || '').trim().toLowerCase();
+        if (seenNames.has(key)) return false;
+        seenNames.add(key);
+        return true;
+    });
     const cultureGrid = document.getElementById('culture-grid');
     const cultureCount = document.getElementById('culture-count');
     if (cultureCount) {
