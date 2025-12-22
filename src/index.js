@@ -582,6 +582,7 @@ function initializeCultureExplorer() {
     cultures.forEach(culture => {
         const card = document.createElement('div');
         card.className = 'culture-card';
+        card.dataset.cultureId = culture.id;
         card.innerHTML = `
             <div style="font-size: 3em; margin-bottom: 10px;">${culture.emoji}</div>
             <h3>${culture.name}</h3>
@@ -689,10 +690,31 @@ function initializeWorldMap(cultures) {
                     <strong>Region:</strong> ${cultureCoord.region}<br>
                     <strong>Description:</strong> ${culture.description.substring(0, 80)}...
                 </div>
-                <button style="margin-top: 8px; padding: 4px 8px; background: ${cultureCoord.color}; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em;" onclick="document.querySelector('[data-tab=explore]').click();">
+                <button id="view-details-${culture.id}" style="margin-top: 8px; padding: 4px 8px; background: ${cultureCoord.color}; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8em; color: #333; font-weight: 600;">
                     View Details
                 </button>
             `);
+            
+            // Add event listener after popup opens
+            marker.on('popupopen', () => {
+                const detailsBtn = document.getElementById(`view-details-${culture.id}`);
+                if (detailsBtn) {
+                    detailsBtn.addEventListener('click', () => {
+                        // Scroll to the culture card
+                        const cultureCard = document.querySelector(`[data-culture-id="${culture.id}"]`);
+                        if (cultureCard) {
+                            cultureCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            // Highlight the card briefly
+                            cultureCard.style.transform = 'scale(1.05)';
+                            cultureCard.style.boxShadow = '0 8px 16px rgba(102, 126, 234, 0.4)';
+                            setTimeout(() => {
+                                cultureCard.style.transform = '';
+                                cultureCard.style.boxShadow = '';
+                            }, 2000);
+                        }
+                    });
+                }
+            });
             
             // Click to filter cultures by region
             marker.on('click', () => {
