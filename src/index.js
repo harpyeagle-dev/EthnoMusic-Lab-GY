@@ -677,7 +677,7 @@ function initializeWorldMap(cultures) {
         'chinese-traditional': { lat: 35, lng: 110, color: '#FF6B6B', region: 'East Asia' },
         'middle-eastern': { lat: 30, lng: 45, color: '#95E1D3', region: 'Middle East' },
         // Shifted west/north to better represent continental Latin America
-        'latin-american': { lat: 0, lng: -75, color: '#FCBAD3', region: 'Latin America' },
+        'latin-american': { lat: 15.915056870105534, lng: -89.64109195180036, color: '#FCBAD3', region: 'Latin America' },
         'aboriginal-australian': { lat: -25, lng: 133, color: '#A8D8EA', region: 'Australia' },
         'european-folk': { lat: 52, lng: 10, color: '#AA96DA', region: 'Europe' },
         'japanese-traditional': { lat: 36, lng: 138, color: '#FF6B6B', region: 'East Asia' },
