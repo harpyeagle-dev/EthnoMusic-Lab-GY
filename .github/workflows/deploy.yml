@@ -1,9 +1,14 @@
-name: Deploy to GitHub Pages
+name: Deploy to GitHub Pages (Deprecated)
 
 on:
   push:
-    branches: [ main, master ]
-  workflow_dispatch:
+    branches: [ gh-pages-deprecated ]
+  # Manual runs are disabled to avoid duplicate deployments
+  workflow_dispatch: 
+    inputs:
+      note:
+        description: "Deprecated workflow; do not use"
+        required: false
 
 permissions:
   contents: read
@@ -16,6 +21,7 @@ concurrency:
 
 jobs:
   build:
+    if: ${{ false }} # Fully disable this workflow
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

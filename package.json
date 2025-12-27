@@ -8,9 +8,7 @@
     "build": "webpack --mode production",
     "test": "jest",
     "dev": "webpack serve --mode development",
-    "preview": "serve -s dist -l 5000",
-    "deploy": "netlify deploy --dir=dist",
-    "deploy:prod": "netlify deploy --dir=dist --prod"
+    "preview": "serve -s dist -l 5000"
   },
   "keywords": [
     "ethnomusicology",
@@ -38,7 +36,6 @@
     "css-loader": "^6.8.1",
     "html-webpack-plugin": "^5.5.4",
     "jest": "^29.7.0",
-    "netlify-cli": "^17.38.1",
     "serve": "^14.2.5",
     "style-loader": "^3.3.3",
     "webpack": "^5.89.0",

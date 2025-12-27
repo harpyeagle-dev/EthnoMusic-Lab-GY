@@ -607,6 +607,46 @@ function initializeAudioUnlockOverlay() {
     });
 }
 
+// Audio readiness helper and hooks
+function ensureAudioReady() {
+    try {
+        // Create AudioContext if missing
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        // Create master gain if missing
+        if (typeof window !== 'undefined' && !window.__MASTER_GAIN && audioContext) {
+            const masterGain = audioContext.createGain();
+            // Respect classroom mode default, else healthy default
+            const classroom = typeof document !== 'undefined' && document.body && document.body.classList && document.body.classList.contains('classroom-mode');
+            masterGain.gain.value = classroom ? 0.18 : 1.0;
+            masterGain.connect(audioContext.destination);
+            window.__MASTER_GAIN = masterGain;
+        }
+        // Attempt resume on Safari/iOS
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume().catch(() => {});
+        }
+        return !!audioContext;
+    } catch (e) {
+        console.warn('ensureAudioReady: failed to initialize audio', e);
+        return false;
+    }
+}
+
+// Resume on page focus/visibility
+if (typeof document !== 'undefined') {
+    const resumeIfNeeded = () => {
+        if (audioContext && audioContext.state === 'suspended') {
+            audioContext.resume().catch(() => {});
+        }
+    };
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) resumeIfNeeded();
+    });
+    window.addEventListener('focus', resumeIfNeeded);
+}
+
 // Culture Explorer
 function initializeCultureExplorer() {
     const basicCultures = getAllCultures();
@@ -951,11 +991,10 @@ function noteToFrequency(note) {
 
 function playNote(frequency, time, duration) {
     // Ensure audioContext exists and is running
-    if (!audioContext) {
-        console.warn('playNote: audioContext not initialized');
+    if (!ensureAudioReady()) {
+        console.warn('playNote: audio not ready');
         return;
     }
-    
     // Resume if suspended (Safari)
     if (audioContext.state === 'suspended') {
         audioContext.resume().catch(e => console.warn('Resume failed:', e));
