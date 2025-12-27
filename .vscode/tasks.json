@@ -16,6 +16,13 @@
 			"command": "npm run build",
 			"isBackground": false,
 			"group": "build"
+		},
+		{
+			"label": "Build Ethno Explorer",
+			"type": "shell",
+			"command": "npm run build",
+			"isBackground": false,
+			"group": "build"
 		}
 	]
 }

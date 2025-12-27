@@ -810,6 +810,32 @@ function initializeWorldMap(cultures) {
             });
         }
     });
+
+    // Add standalone marker for Great Britain (Europe)
+    const gbCoord = { lat: 54.5, lng: -3.0, color: regionColors['Europe'] || '#AA96DA', region: 'Europe' };
+    const gbMarker = L.circleMarker(
+        [gbCoord.lat, gbCoord.lng],
+        {
+            radius: 10,
+            fillColor: gbCoord.color,
+            color: '#333',
+            weight: 2,
+            opacity: 0.9,
+            fillOpacity: 0.75
+        }
+    ).addTo(map);
+    gbMarker.bindPopup(`
+        <div style="font-weight: bold; margin-bottom: 5px; font-size: 1.1em;">
+            🇬🇧 Great Britain
+        </div>
+        <div style="font-size: 0.85em; line-height: 1.4;">
+            <strong>Region:</strong> ${gbCoord.region}<br>
+            <strong>Description:</strong> Key center within European musical traditions.
+        </div>
+    `);
+    gbMarker.on('click', () => {
+        filterCulturesByRegion(gbCoord.region);
+    });
     
         // Add legend event listeners
     if (legendElement) legendElement.innerHTML = legendHTML;
