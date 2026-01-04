@@ -7,7 +7,15 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.[contenthash].js',
+    publicPath: '/world-ethnomusic-lab/',
     clean: true,
+  },
+  resolve: {
+    fallback: {
+      "path": false,
+      "fs": false,
+      "crypto": false
+    }
   },
   module: {
     rules: [
@@ -36,7 +44,13 @@ module.exports = {
       patterns: [
         { from: 'src/manifest.json', to: '.' },
         { from: 'src/sw.js', to: '.' },
-        { from: 'src/404.html', to: '.' }
+        { from: 'src/404.html', to: '.' },
+        // Make the Essentia WASM binary available at runtime (web build)
+        { from: 'node_modules/essentia.js/dist/essentia-wasm.web.wasm', to: '.' },
+        // Optional: copy local TF.js models if present
+        { from: 'public/models', to: 'models', noErrorOnMissing: true },
+        // ONNX Runtime Web assets (wasm backends)
+        { from: 'node_modules/onnxruntime-web/dist/*', to: 'ort/[name][ext]', noErrorOnMissing: true }
       ]
     })
   ],

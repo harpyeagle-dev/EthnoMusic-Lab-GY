@@ -10,6 +10,7 @@ import { dedupeCultures } from './utils/dedup.js';
 import { RealTimePitchDetector, Visualizer3D, ProgressTracker, musicalGlossary } from './advancedFeatures.js';
 import { MusicComposer, Looper, PitchMatchingGame, RhythmDictation, InstrumentIdentifier, downloadJSON, generatePDF } from './games.js';
 import { culturalQuizQuestions, getRandomQuestions, lessonPlans, practiceExercises, accessibilityHelpers, mobileOptimizations } from './extendedFeatures.js';
+import { initMLTrainerUI } from './trainerUI.js';
 
 // Global state
 let audioAnalyzer;
@@ -290,11 +291,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Tab Navigation - Event delegation to avoid duplicate listeners
 let tabListenersInitialized = false;
 
+// ensureAudioReady is already defined later; keep only one definition
+
+// Proactively unlock audio on first user interaction anywhere
+try {
+    document.addEventListener('pointerdown', () => ensureAudioReady(), { once: true, passive: true });
+    document.addEventListener('keydown', () => ensureAudioReady(), { once: true, passive: true });
+} catch {}
+
 function initializeTabs() {
     if (tabListenersInitialized) return; // Only setup once
     
     document.addEventListener('click', (e) => {
         if (!e.target?.classList.contains('tab-btn')) return;
+        // Opportunistically ensure audio is ready on tab switch
+        ensureAudioReady();
         
         const tabName = e.target.dataset.tab;
         const tabButtons = document.querySelectorAll('.tab-btn');
@@ -306,6 +317,11 @@ function initializeTabs() {
         
         e.target.classList.add('active');
         document.getElementById(`${tabName}-tab`)?.classList.add('active');
+
+        // Initialize ML Trainer UI when trainer tab is opened
+        if (tabName === 'trainer') {
+            initMLTrainerUI().catch(err => console.error('Failed to initialize ML Trainer:', err));
+        }
 
         // Ensure Leaflet map resizes correctly when Explore tab becomes visible
         if (tabName === 'explore' && worldMapInstance) {
@@ -1329,6 +1345,7 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
         const maxDurationSec = 15;
         const trimmedSamples = Math.min(channelData.length, Math.floor(sampleRate * maxDurationSec));
         const trimmedChannel = channelData.slice(0, trimmedSamples);
+        const usingEssentia = audioAnalyzer?.essentiaReady === true;
         // console.log('Channel data ready: length', trimmedChannel.length, 'at', sampleRate, 'Hz');
         
         // Update UI with progress
@@ -1371,7 +1388,7 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
         for (let i = 0; i < trimmedChannel.length - sampleSize; i += sampleSize * 64) {
             if (analysisCancelled) throw new Error('Analysis cancelled');
             const sample = trimmedChannel.slice(i, i + sampleSize);
-            const pitch = audioAnalyzer.detectPitch(sample);
+            const pitch = usingEssentia ? audioAnalyzer.detectPitchEssentia(sample) : audioAnalyzer.detectPitch(sample);
             if (pitch > 0 && pitch < 2000) { // Filter out noise
                 pitches.push(pitch);
                 timestamps.push(i / sampleRate);
@@ -1395,11 +1412,42 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
         // console.log('Analyzing spectrum...');
         // console.log('Calling analyzeSpectrum with', trimmedChannel.length, 'samples at', sampleRate, 'Hz');
         const spectralAnalysis = analyzeSpectrum(trimmedChannel, sampleRate);
+        const keyAnalysis = usingEssentia ? audioAnalyzer.detectKeyEssentia(trimmedChannel) : null;
+        // Feature flag: ML-assisted genre via Essentia MFCCs (enable with ?mlGenre=1)
+        const mlGenreEnabled = (() => {
+            try { return new URLSearchParams(window.location.search).get('mlGenre') === '1'; } catch { return false; }
+        })();
+        const mlWeightParam = (() => {
+            try {
+                const v = new URLSearchParams(window.location.search).get('mlWeight');
+                const n = Number(v);
+                return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : null;
+            } catch { return null; }
+        })();
+        // Feature flag: rule tuning profile (?tuning=experimental|stable)
+        const tuningParam = (() => {
+            try {
+                const v = new URLSearchParams(window.location.search).get('tuning');
+                return v === 'experimental' ? 'experimental' : 'stable';
+            } catch { return 'stable'; }
+        })();
+        let mlFeatures = null;
+        if (mlGenreEnabled && usingEssentia && typeof audioAnalyzer.extractMFCCFeatures === 'function') {
+            try {
+                mlFeatures = audioAnalyzer.extractMFCCFeatures(trimmedChannel, sampleRate);
+            } catch (e) {
+                console.warn('MFCC extraction error:', e?.message || e);
+            }
+        }
+        const engineLabel = usingEssentia ? `Essentia.js (WASM)${mlGenreEnabled && mlFeatures ? ' + ML-assisted genres' : ''}` : 'Basic analyzer';
         // console.log('✓ Spectral analysis complete');
         // console.log('Centroid:', spectralAnalysis.centroid, 'Brightness:', spectralAnalysis.brightness);
 
         // Restore proper HTML structure for charts
         analysisResults.innerHTML = `
+            <div style="margin: 0 0 12px; padding: 10px 12px; background: #eef2ff; border-radius: 6px; border-left: 4px solid #667eea;">
+                <strong>Analysis engine:</strong> ${engineLabel}${usingEssentia ? ' (accelerated)' : ' (fallback)'}
+            </div>
             ${audioPlayer ? '<div style="margin: 0 0 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid #2196f3;"><h4 style="margin: 0 0 10px; color: #1565c0;">🔊 Audio Playback</h4>' + audioPlayer.outerHTML + '</div>' : ''}
             <div class="analysis-grid">
                 <div class="analysis-card">
@@ -1432,11 +1480,15 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
             filename: filename,
             duration: audioBuffer.duration,
             sampleRate: sampleRate,
+            engine: usingEssentia ? 'essentia' : 'basic',
+            key: keyAnalysis,
+            engineLabel,
             rhythm: rhythmAnalysis,
             pitches: pitches,
             timestamps: timestamps,
             spectral: spectralAnalysis,
-            analyzedAt: new Date().toISOString()
+            analyzedAt: new Date().toISOString(),
+            ml: mlFeatures ? { enabled: mlGenreEnabled, features: mlFeatures } : { enabled: false }
         };
         
         displayPitchAnalysis(pitches, timestamps);
@@ -1446,8 +1498,23 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
         // Identify scale
         const scaleAnalysis = audioAnalyzer.identifyScale(pitches);
         
+        // Extract Essentia features for ML and classification
+        const essentiaFeatures = audioAnalyzer.extractEssentiaFeatures(audioBuffer);
+        
+        // Genre classification (optionally ML-assisted, now with Essentia features)
+        const genreResults = await audioAnalyzer.classifyGenre(
+            rhythmAnalysis,
+            scaleAnalysis,
+            spectralAnalysis,
+            essentiaFeatures,
+            { mlWeight: mlWeightParam ?? 0.25, tuning: tuningParam }
+        );
+        
+        // Store genre in analysis data
+        currentAnalysisData.genre = genreResults;
+        
         // Display musical characteristics (not cultural matching)
-        displayMusicalInsights(rhythmAnalysis, scaleAnalysis, spectralAnalysis);
+        displayMusicalInsights(rhythmAnalysis, scaleAnalysis, spectralAnalysis, keyAnalysis, engineLabel, genreResults);
         
         // Add download functionality
         setupDownloadButtons();
@@ -1535,6 +1602,7 @@ function displayPitchAnalysis(pitches, timestamps) {
         <p><strong>Most Common Note:</strong> ${sortedNotes[0] ? audioAnalyzer.midiToNoteName(parseInt(sortedNotes[0][0])) : 'N/A'}</p>
         <p><strong>Pitch Variation:</strong> ${pitchStdDev.toFixed(2)} Hz (${pitchStdDev > 50 ? 'High' : pitchStdDev > 20 ? 'Moderate' : 'Low'} variability)</p>
         <p><strong>Total Pitches Detected:</strong> ${pitches.length}</p>
+        <p><strong>Engine:</strong> ${currentAnalysisData?.engine === 'essentia' ? 'Essentia.js (WASM)' : 'Basic analyzer'}</p>
     `;
 }
 
@@ -1611,44 +1679,8 @@ function displayRhythmAnalysis(rhythmAnalysis) {
     `;
 }
 
-function displayMusicalInsights(rhythmAnalysis, scaleAnalysis, spectralAnalysis) {
+function displayMusicalInsights(rhythmAnalysis, scaleAnalysis, spectralAnalysis, keyAnalysis = null, engineLabel = 'Basic analyzer', genreResults = []) {
     const insightsDiv = document.getElementById('cultural-insights');
-    
-    // Find similar cultures based on musical characteristics
-    const allCultures = getAllCultures();
-    let culturalMatches = [];
-    
-    allCultures.forEach(culture => {
-        let score = 0;
-        const characteristics = culture.characteristics;
-        
-        // Compare tempo
-        const tempoRange = characteristics.tempo.split('-').map(t => parseInt(t));
-        const avgTempo = (tempoRange[0] + tempoRange[1]) / 2;
-        const tempoDiff = Math.abs(rhythmAnalysis.tempo - avgTempo);
-        
-        if (tempoDiff < 15) score += 3;
-        else if (tempoDiff < 30) score += 2;
-        else if (tempoDiff < 50) score += 1;
-        
-        // Compare rhythm characteristics
-        if (rhythmAnalysis.regularity > 0.7 && characteristics.rhythm.toLowerCase().includes('steady')) score += 2;
-        if (rhythmAnalysis.regularity > 0.7 && characteristics.rhythm.toLowerCase().includes('regular')) score += 2;
-        if (rhythmAnalysis.polyrhythmic && characteristics.rhythm.toLowerCase().includes('complex')) score += 3;
-        if (rhythmAnalysis.polyrhythmic && characteristics.rhythm.toLowerCase().includes('polyrhythmic')) score += 3;
-        
-        // Compare scale types
-        if (scaleAnalysis.scale.includes('Pentatonic') && characteristics.scales.toLowerCase().includes('pentatonic')) score += 3;
-        if (scaleAnalysis.scale.includes('Minor') && characteristics.scales.toLowerCase().includes('minor')) score += 2;
-        if (scaleAnalysis.scale.includes('Major') && characteristics.scales.toLowerCase().includes('major')) score += 2;
-        
-        if (score > 0) {
-            culturalMatches.push({ culture, score });
-        }
-    });
-    
-    culturalMatches.sort((a, b) => b.score - a.score);
-    const topMatches = culturalMatches.slice(0, 5);
     
     // Determine musical characteristics without cultural presumptions
     const tempoCategory = rhythmAnalysis.tempo < 60 ? 'Very Slow (Grave/Largo)' :
@@ -1680,37 +1712,88 @@ function displayMusicalInsights(rhythmAnalysis, scaleAnalysis, spectralAnalysis)
     // Musical form suggestions
     const suggestedUses = getSuggestedMusicalUses(rhythmAnalysis, scaleAnalysis, spectralAnalysis);
     
-    // Cultural comparison section
-    let culturalComparisonHTML = '';
-    if (topMatches.length > 0) {
-        culturalComparisonHTML = `
-            <div style="margin-bottom: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; border-left: 4px solid #4caf50;">
-                <h4 style="margin-top: 0;">🌍 Similar Musical Cultures</h4>
-                <p style="margin: 0 0 15px; font-size: 0.9em; color: #2e7d32;">
-                    Based on tempo, rhythm, and scale characteristics, your audio shares similarities with:
-                </p>
-                ${topMatches.map((match, i) => `
-                    <div style="margin: 10px 0; padding: 12px; background: white; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                        <strong style="font-size: 1.1em;">${i + 1}. ${match.culture.emoji} ${match.culture.name}</strong>
-                        <p style="margin: 5px 0 0; font-size: 0.85em; color: #555;">
-                            <strong>Match Score:</strong> ${match.score}/10 | 
-                            <strong>Tempo:</strong> ${match.culture.characteristics.tempo} BPM | 
-                            <strong>Rhythm:</strong> ${match.culture.characteristics.rhythm}
-                        </p>
-                        <p style="margin: 5px 0 0; font-size: 0.85em; color: #666;">
-                            <strong>Scales:</strong> ${match.culture.characteristics.scales}
-                        </p>
+    insightsDiv.innerHTML = `
+        
+        ${genreResults.length > 0 ? `
+        <div style="margin-bottom: 20px; padding: 15px; background: #fce4ec; border-radius: 8px; border-left: 4px solid #e91e63;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h4 style="margin: 0;">🎸 Genre Classification</h4>
+                <button id="toggle-genre-details" class="btn-secondary" style="padding: 6px 12px; font-size: 0.85em;">📋 Show Details</button>
+            </div>
+            <div id="genre-details" style="display: none; margin-bottom: 15px; padding: 12px; background: rgba(0,0,0,0.05); border-radius: 6px; font-size: 0.85em; font-family: monospace; color: #333;">
+                ${genreResults.__debug ? `
+                    <div style="margin-bottom: 8px;">
+                        <strong>Input Features:</strong><br>
+                        Tempo: ${genreResults.__debug.input.tempo.toFixed(1)} BPM | 
+                        Regularity: ${(genreResults.__debug.input.regularity * 100).toFixed(1)}% | 
+                        Brightness: ${(genreResults.__debug.input.brightness * 100).toFixed(1)}%<br>
+                        Percussiveness: ${(genreResults.__debug.input.percussiveness * 100).toFixed(1)}% | 
+                        Complexity: ${(genreResults.__debug.input.complexity * 100).toFixed(1)}%
+                    </div>
+                    <div>
+                        <strong>Raw Scores:</strong><br>
+                        ${Object.entries(genreResults.__debug.rawScores)
+                            .sort((a, b) => b[1] - a[1])
+                            .map(([g, s]) => g + ': ' + (s >= 0 ? '+' : '') + s.toFixed(3))
+                            .join(' | ')}
+                    </div>
+                ` : '<em>Debug info unavailable</em>'}
+            </div>
+            <p style="margin: 0 0 12px; font-size: 0.9em; color: #880e4f;">
+                Based on tempo, rhythm patterns, scale structure, and spectral characteristics:
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+                ${genreResults.map((g, i) => `
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: white; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <span style="font-size: 1.3em; min-width: 30px;">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '🎵'}</span>
+                        <div style="flex: 1;">
+                            <strong style="font-size: 1.05em; color: #c2185b;">${g.genre}</strong>
+                            <div style="margin-top: 4px; height: 6px; background: #f5f5f5; border-radius: 3px; overflow: hidden;">
+                                <div style="height: 100%; background: linear-gradient(90deg, #e91e63, #f06292); width: ${g.confidence}%; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+                        <span style="font-weight: bold; color: #c2185b; min-width: 45px; text-align: right;">${g.confidence}%</span>
                     </div>
                 `).join('')}
-                <button class="btn-secondary" style="margin-top: 10px;" onclick="document.querySelector('[data-tab=\\'explore\\']').click(); setTimeout(() => document.getElementById('explore-tab').scrollIntoView({behavior: 'smooth'}), 100);">
-                    🔍 Explore These Cultures
-                </button>
             </div>
-        `;
-    }
-    
-    insightsDiv.innerHTML = `
-        ${culturalComparisonHTML}
+            <p style="margin: 12px 0 0; font-size: 0.85em; color: #666;">
+                💡 <strong>Note:</strong> Genre detection uses musical features—results are suggestions, not definitive classifications.
+            </p>
+        </div>
+        <script>
+            (function() {
+                // Ensure elements are available before binding
+                let retries = 0;
+                const maxRetries = 50; // Up to 5 seconds
+                
+                function setupToggle() {
+                    const btn = document.getElementById('toggle-genre-details');
+                    const details = document.getElementById('genre-details');
+                    
+                    if (btn && details) {
+                        console.log('[Genre Details] Button and container found, binding event');
+                        btn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            const isHidden = details.style.display === 'none';
+                            details.style.display = isHidden ? 'block' : 'none';
+                            btn.textContent = isHidden ? '📋 Hide Details' : '📋 Show Details';
+                            console.log('[Genre Details] Toggled:', isHidden ? 'showing' : 'hiding');
+                        });
+                    } else {
+                        retries++;
+                        if (retries < maxRetries) {
+                            setTimeout(setupToggle, 100);
+                        } else {
+                            console.warn('[Genre Details] Could not find button or container after retries');
+                        }
+                    }
+                }
+                
+                // Start immediately and in next microtask
+                setTimeout(setupToggle, 0);
+            })();
+        </script>
+        ` : ''}
         
         <div style="margin-bottom: 20px; padding: 15px; background: #f0f4ff; border-radius: 8px; border-left: 4px solid #667eea;">
             <h4 style="margin-top: 0;">🎼 Musical Scale & Tonality</h4>
@@ -1721,6 +1804,12 @@ function displayMusicalInsights(rhythmAnalysis, scaleAnalysis, spectralAnalysis)
             </p>
             <p style="margin: 5px 0; font-size: 0.9em;">
                 <strong>Scale Family:</strong> ${scaleFamily}
+            </p>
+            <p style="margin: 5px 0; font-size: 0.9em;">
+                <strong>Estimated Key (Essentia):</strong> ${keyAnalysis ? `${keyAnalysis.key} ${keyAnalysis.scale} (${(keyAnalysis.confidence * 100).toFixed(1)}% confidence)` : 'Not available (basic engine)'}
+            </p>
+            <p style="margin: 5px 0; font-size: 0.9em;">
+                <strong>Analysis Engine:</strong> ${engineLabel}
             </p>
         </div>
         
@@ -1773,53 +1862,70 @@ function displayMusicalInsights(rhythmAnalysis, scaleAnalysis, spectralAnalysis)
 function getSuggestedMusicalUses(rhythmAnalysis, scaleAnalysis, spectralAnalysis) {
     let suggestions = [];
     
-    // Tempo-based suggestions
-    if (rhythmAnalysis.tempo < 70) {
-        suggestions.push('Ballads, meditative music, ambient soundscapes');
-    } else if (rhythmAnalysis.tempo < 100) {
-        suggestions.push('Folk songs, blues, soul, downtempo');
-    } else if (rhythmAnalysis.tempo < 130) {
-        suggestions.push('Pop, rock, funk, moderate dance music');
+    const tempo = rhythmAnalysis.tempo;
+    const scale = scaleAnalysis.scale;
+    const brightness = spectralAnalysis.brightness;
+    const regularity = rhythmAnalysis.regularity;
+    const percussiveness = rhythmAnalysis.percussiveness;
+    
+    // Scale-based genre contexts
+    if (scale.includes('Pentatonic')) {
+        suggestions.push('<strong>Pentatonic Traditions:</strong> Found across world music (East Asian, African, indigenous cultures), blues, and folk traditions');
+    }
+    if (scale.includes('Dorian') || scale.includes('Phrygian') || scale.includes('Mixolydian')) {
+        suggestions.push('<strong>Modal Scales:</strong> Common in jazz improvisation, European folk music, and classical traditions');
+    }
+    if (scale.includes('Blues')) {
+        suggestions.push('<strong>Blues Tonality:</strong> Characteristic of blues, jazz, rock, and R&B genres');
+    }
+    if (scale.includes('Minor')) {
+        suggestions.push('<strong>Minor Tonality:</strong> Appears across many genres including classical, rock, and popular music');
+    }
+    
+    // Tempo-based context
+    if (tempo < 80) {
+        suggestions.push('<strong>Slow Tempo:</strong> Suitable for meditative, classical, or intimate vocal contexts');
+    } else if (tempo >= 80 && tempo < 120) {
+        suggestions.push('<strong>Moderate Tempo:</strong> Common in reggae, folk, country, and many world music traditions');
+    } else if (tempo >= 120 && tempo < 160) {
+        suggestions.push('<strong>Brisk Tempo:</strong> Typical for dance, rock, pop, and energetic folk traditions');
     } else {
-        suggestions.push('Uptempo dance, electronic music, fast folk traditions');
+        suggestions.push('<strong>Fast Tempo:</strong> Characteristic of uptempo dance, metal, hip-hop, and virtuosic classical works');
     }
     
-    // Scale-based suggestions
-    if (scaleAnalysis.scale.includes('Pentatonic')) {
-        suggestions.push('Improvisation-friendly, common in blues, rock, and traditional music worldwide');
-    } else if (scaleAnalysis.scale.includes('Blues')) {
-        suggestions.push('Blues, jazz, rock, gospel music');
-    } else if (scaleAnalysis.scale.includes('Dorian') || scaleAnalysis.scale.includes('Mixolydian')) {
-        suggestions.push('Jazz, fusion, modal jazz, contemporary folk');
-    } else if (scaleAnalysis.scale.includes('Phrygian')) {
-        suggestions.push('Flamenco, metal, Mediterranean-influenced music');
-    } else if (scaleAnalysis.scale.includes('Minor')) {
-        suggestions.push('Classical compositions, emotional/dramatic music, film scores');
+    // Regularity-based context
+    if (regularity > 0.8) {
+        suggestions.push('<strong>High Regularity:</strong> Indicates structured, beat-driven music (electronic, dance, pop)');
+    } else if (regularity >= 0.5 && regularity <= 0.8) {
+        suggestions.push('<strong>Moderate Regularity:</strong> Balanced between groove and variation (rock, reggae, folk)');
+    } else if (regularity < 0.5) {
+        suggestions.push('<strong>Low Regularity:</strong> Indicates ornamental, improvisational, or free-form music (raga, jazz, classical rubato)');
     }
     
-    // Rhythm-based suggestions
+    // Percussiveness context
+    if (percussiveness > 0.15) {
+        suggestions.push('<strong>Percussion-Rich:</strong> Emphasizes rhythmic elements (hip-hop, electronic, African traditions, metal)');
+    } else if (percussiveness < 0.05) {
+        suggestions.push('<strong>Melodic Focus:</strong> Prioritizes harmonic and melodic elements (classical, folk, intimate vocals)');
+    }
+    
+    // Rhythmic patterns
     if (rhythmAnalysis.polyrhythmic) {
-        suggestions.push('Complex rhythmic music, progressive styles, polyrhythmic traditions');
-    } else if (rhythmAnalysis.regularity > 0.8) {
-        suggestions.push('Dance music, marching music, metronomic compositions');
-    } else if (rhythmAnalysis.regularity < 0.5) {
-        suggestions.push('Free-form jazz, rubato classical pieces, expressive performances');
+        suggestions.push('<strong>Polyrhythmic:</strong> Complex interlocking rhythms characteristic of African, progressive, and world music traditions');
     }
     
-    // Timbre-based suggestions
-    if (spectralAnalysis.brightness > 0.6) {
-        suggestions.push('Bright instrumentation (cymbals, strings, synths)');
-    } else {
-        suggestions.push('Warm instrumentation (bass, woodwinds, mellow tones)');
+    // Brightness context
+    if (brightness > 0.7) {
+        suggestions.push('<strong>Bright Timbre:</strong> Light, treble-focused sound typical of higher instruments or bright arrangements');
+    } else if (brightness < 0.35) {
+        suggestions.push('<strong>Dark Timbre:</strong> Warm, bass-focused sound typical of lower instruments or darker arrangements');
     }
     
     return `
         <ul style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
-            ${suggestions.map(s => `<li style="margin: 8px 0;">${s}</li>`).join('')}
+            ${suggestions.slice(0, 5).map(s => `<li style="margin: 8px 0;">${s}</li>`).join('')}
         </ul>
-        <p style="margin: 15px 0 0 0; padding: 10px; background: rgba(3, 169, 244, 0.1); border-radius: 4px; font-size: 0.9em;">
-            <strong>Suggested Exploration:</strong> Listen to examples across different genres and cultures that share these characteristics to discover the universality and uniqueness of musical elements.
-        </p>
+        <p style="margin-top: 12px; font-size: 0.95em; color: #555;">💡 <strong>Tip:</strong> Use the "Explore Cultures" feature to discover how these musical characteristics appear across different cultural traditions worldwide.</p>
     `;
 }
 
@@ -1873,6 +1979,23 @@ function analyzeSpectrum(channelData, sampleRate) {
     avgSpectrum.forEach((val, i, arr) => arr[i] = val / spectrum.length);
     
     // Calculate spectral features
+    const spectrumVector = new Float32Array(avgSpectrum);
+    if (audioAnalyzer && typeof audioAnalyzer.analyzeSpectralFeatures === 'function') {
+        const features = audioAnalyzer.analyzeSpectralFeatures(spectrumVector) || {};
+        const centroid = typeof features.centroid === 'number' ? features.centroid : calculateSpectralCentroid(avgSpectrum, sampleRate);
+        const rolloff = typeof features.rolloff === 'number' ? features.rolloff : calculateSpectralRolloff(avgSpectrum, sampleRate);
+        const brightness = typeof features.brightness === 'number' ? features.brightness : centroid / (sampleRate / 2);
+        return {
+            spectrum: avgSpectrum,
+            centroid,
+            rolloff,
+            brightness,
+            flux: features.flux,
+            flatness: features.flatness,
+            engine: audioAnalyzer.essentiaReady ? 'essentia' : 'basic'
+        };
+    }
+
     const spectralCentroid = calculateSpectralCentroid(avgSpectrum, sampleRate);
     const spectralRolloff = calculateSpectralRolloff(avgSpectrum, sampleRate);
     const brightness = spectralCentroid / (sampleRate / 2);
@@ -1881,7 +2004,8 @@ function analyzeSpectrum(channelData, sampleRate) {
         spectrum: avgSpectrum,
         centroid: spectralCentroid,
         rolloff: spectralRolloff,
-        brightness: brightness
+        brightness: brightness,
+        engine: 'basic'
     };
 }
 
@@ -1982,6 +2106,7 @@ function displaySpectralAnalysis(spectralAnalysis) {
         <p><strong>Brightness:</strong> ${(spectralAnalysis.brightness * 100).toFixed(1)}%</p>
         <p><strong>Timbre Character:</strong> ${timbre}</p>
         <p><strong>Analysis:</strong> ${spectralAnalysis.brightness > 0.5 ? 'High-frequency content suggests presence of cymbals, strings, or bright instruments' : 'Low-frequency dominant, suggests drums, bass, or darker timbres'}</p>
+        <p><strong>Engine:</strong> ${currentAnalysisData?.engine === 'essentia' ? 'Essentia.js (WASM)' : 'Basic analyzer'}</p>
     `;
 }
 
@@ -3609,3 +3734,5 @@ function initializeAccessibility() {
     
     accessibilityListenersInitialized = true;
 }
+
+

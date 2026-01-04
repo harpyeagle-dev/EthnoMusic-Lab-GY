@@ -193,13 +193,14 @@ export function matchCulture(analysisResults) {
             const tempo = analysisResults.rhythm.tempo;
             const regularity = analysisResults.rhythm.regularity;
             const peakCount = analysisResults.rhythm.peakCount;
+            const polyrhythmic = !!analysisResults.rhythm.polyrhythmic;
             
             // Tempo matching with ranges
             const tempoMatches = {
                 'west-african': { range: [100, 140], weight: 2.5, name: 'Polyrhythmic Foundation' },
                 'latin-american': { range: [120, 180], weight: 2.5, name: 'Latin Energy' },
                 'brazilian-samba': { range: [150, 200], weight: 2.5, name: 'Samba Pace' },
-                'caribbean-rhythms': { range: [100, 180], weight: 2, name: 'Island Syncopation' },
+                'caribbean-rhythms': { range: [60, 180], weight: 2.5, name: 'Island Syncopation' },
                 'venezuelan-joropo': { range: [120, 180], weight: 2.5, name: 'Joropo Vitality' },
                 'indian-classical': { range: [60, 120], weight: 1.5, name: 'Raga Flow' },
                 'japanese-traditional': { range: [40, 100], weight: 2, name: 'Meditative Pace' },
@@ -223,15 +224,15 @@ export function matchCulture(analysisResults) {
                     score += 1.5;
                     matchedFeatures.push('Regular Pulse');
                 }
-            } else if (regularity < 0.6) {
+            } else if (regularity < 0.6 && polyrhythmic) {
                 if (['west-african', 'japanese-traditional', 'aboriginal-australian'].includes(culture.id)) {
                     score += 1.5;
                     matchedFeatures.push('Complex Polyrhythm');
                 }
             }
             
-            // Onset complexity
-            if (peakCount > 30) {
+            // Onset complexity (only if polyrhythmic or very dense)
+            if (peakCount > 30 && (polyrhythmic || culture.id === 'brazilian-samba')) {
                 if (['west-african', 'brazilian-samba', 'caribbean-rhythms'].includes(culture.id)) {
                     score += 1;
                     matchedFeatures.push('Dense Beat Structure');
@@ -242,6 +243,8 @@ export function matchCulture(analysisResults) {
         // ========== SCALE & MELODIC ANALYSIS ==========
         if (analysisResults.scale) {
             const scaleName = analysisResults.scale.scale;
+            const scaleConf = analysisResults.scale.confidence ?? 1;
+            const confidenceFactor = scaleConf < 0.6 ? 0.5 : 1;
             
             // Pentatonic scales
             if (scaleName.includes('Pentatonic')) {
@@ -253,7 +256,7 @@ export function matchCulture(analysisResults) {
                     'korean-traditional': 2.5
                 };
                 if (pentatonicCultures[culture.id]) {
-                    score += pentatonicCultures[culture.id];
+                    score += pentatonicCultures[culture.id] * confidenceFactor;
                     matchedFeatures.push('Pentatonic Scale');
                 }
             }
@@ -268,7 +271,7 @@ export function matchCulture(analysisResults) {
                     'caribbean-rhythms': 1.5
                 };
                 if (majorMinorCultures[culture.id]) {
-                    score += majorMinorCultures[culture.id];
+                    score += majorMinorCultures[culture.id] * confidenceFactor;
                     matchedFeatures.push('Major/Minor Tonality');
                 }
             }
@@ -278,6 +281,21 @@ export function matchCulture(analysisResults) {
                 if (['middle-eastern', 'flamenco'].includes(culture.id)) {
                     score += 2.5;
                     matchedFeatures.push('Modal System');
+                }
+            }
+
+            // Raga cue: minor or raga-like naming with mid tempo and non-polyrhythmic
+            if ((/raga/i.test(scaleName) || scaleName.includes('Minor')) && analysisResults.rhythm) {
+                const tempo = analysisResults.rhythm.tempo || 0;
+                const polyrhythmic = !!analysisResults.rhythm.polyrhythmic;
+                if (tempo >= 60 && tempo <= 130 && !polyrhythmic) {
+                    if (culture.id === 'indian-classical') {
+                        score += 2.5 * confidenceFactor;
+                        matchedFeatures.push('Raga-like Tonality');
+                    }
+                    if (culture.id === 'middle-eastern') {
+                        score += 1.5 * confidenceFactor;
+                    }
                 }
             }
         }

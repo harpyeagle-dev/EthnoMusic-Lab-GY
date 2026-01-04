@@ -1,8 +1,9 @@
 'use strict';
 
 // Bump cache name to force clients to fetch the latest bundle/service worker
-const CACHE_NAME = 'ethno-explorer-v6-20251227';
-const RUNTIME_CACHE = 'ethno-runtime-v2';
+// Bump cache version to add raga pattern detection (Blues scale + very low regularity)
+const CACHE_NAME = 'ethno-explorer-v9-20251229j';
+const RUNTIME_CACHE = 'ethno-runtime-v3';
 
 // Skip cache installation - let network handle it
 self.addEventListener('install', (event) => {
