@@ -20,15 +20,38 @@ class GenreMLClassifier {
     }
 
     /**
-     * Resolve an asset path that works in both local dev (root) and GitHub Pages subpath (/world-ethnomusic-lab/).
+     * Resolve an asset path that works in both local dev (root) and GitHub Pages subpaths.
+     * Falls back to deriving the first path segment from window.location if webpack publicPath is not set.
      */
     resolveAssetPath(relativePath) {
+        const guessBaseFromLocation = () => {
+            if (typeof window === 'undefined') return '/';
+            const pathname = window.location.pathname;
+            // If pathname is /world-ethnomusic-lab/ or /world-ethnomusic-lab
+            // Extract the first non-empty segment
+            const parts = pathname.split('/').filter(Boolean);
+            if (parts.length > 0) {
+                return `/${parts[0]}/`;
+            }
+            return '/';
+        };
+
         const base = (typeof __webpack_public_path__ !== 'undefined' && __webpack_public_path__)
             ? __webpack_public_path__
-            : '/';
+            : guessBaseFromLocation();
+
         const normalizedBase = base.endsWith('/') ? base : `${base}/`;
         const trimmed = relativePath.replace(/^\/+/, '');
-        return `${normalizedBase}${trimmed}`;
+        const result = `${normalizedBase}${trimmed}`;
+        
+        // DEBUG: Log the resolved path once per type
+        if (!this._debugLoggedPaths) this._debugLoggedPaths = new Set();
+        if (!this._debugLoggedPaths.has(result)) {
+            console.debug(`[GenreMLClassifier] Resolved asset path: "${relativePath}" → "${result}"`);
+            this._debugLoggedPaths.add(result);
+        }
+        
+        return result;
     }
 
     /**
@@ -37,16 +60,18 @@ class GenreMLClassifier {
     async loadModel() {
         try {
             console.log('Loading Essentia genre classification model...');
+            console.debug('Current pathname:', window.location.pathname);
 
             // Attempt to load TF.js graph model if present in /models
             // Expected path: /models/genre_discogs400/model.json (handled via webpack publicPath)
             // Place downloaded Essentia TFJS bundle in public/models/genre_discogs400
             try {
                 const tfModelUrl = this.resolveAssetPath('models/genre_discogs400/model.json');
+                console.debug('[TF.js] Attempting to load from:', tfModelUrl);
                 this.tfModel = await tf.loadGraphModel(tfModelUrl);
                 this.inputSpec = this.getInputSpec();
                 await this.loadMetadata(this.resolveAssetPath('models/genre_discogs400/metadata.json'));
-                console.log('TF.js genre model loaded from', tfModelUrl, 'with input', this.inputSpec.shape);
+                console.log('✅ TF.js genre model loaded from', tfModelUrl, 'with input', this.inputSpec.shape);
             } catch (tfErr) {
                 console.warn('TF.js genre model not found or failed to load; using heuristic classifier:', tfErr?.message || tfErr);
                 this.tfModel = null;
@@ -56,8 +81,10 @@ class GenreMLClassifier {
             try {
                 // Serve ORT wasm assets from /ort copied by webpack (force trailing slash to avoid path concat issues)
                 const ortBase = this.resolveAssetPath('ort/');
-                ort.env.wasm.wasmPaths = ortBase;
+                ort.env.wasm.wasmPaths = ortBase.endsWith('/') ? ortBase : `${ortBase}/`;
                 const ortModelUrl = this.resolveAssetPath('models/genre_discogs400/genre_discogs400-discogs-maest-30s-pw-1.onnx');
+                console.debug('[ONNX] Setting wasm paths to:', ort.env.wasm.wasmPaths);
+                console.debug('[ONNX] Attempting to load from:', ortModelUrl);
                 this.ortSession = await ort.InferenceSession.create(ortModelUrl, {
                     executionProviders: ['wasm'],
                     graphOptimizationLevel: 'all'
@@ -65,7 +92,7 @@ class GenreMLClassifier {
                 this.ortReady = true;
                 this.ortInput = this.getOrtInputSpec();
                 await this.loadMetadata(this.resolveAssetPath('models/genre_discogs400/metadata.json'));
-                console.log('ONNX genre model loaded from', ortModelUrl, 'with input', this.ortInput.shape);
+                console.log('✅ ONNX genre model loaded from', ortModelUrl, 'with input', this.ortInput.shape);
             } catch (ortErr) {
                 console.warn('ONNX genre model not found or failed to load; will fall back to TF/heuristics:', ortErr?.message || ortErr);
                 this.ortSession = null;

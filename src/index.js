@@ -336,9 +336,15 @@ function initializeTabs() {
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
+            const guessBaseFromLocation = () => {
+                const parts = window.location.pathname.split('/').filter(Boolean);
+                return parts.length ? `/${parts[0]}/` : '/';
+            };
+
             const base = (typeof __webpack_public_path__ !== 'undefined' && __webpack_public_path__)
                 ? __webpack_public_path__
-                : '/';
+                : guessBaseFromLocation();
+
             const normalizedBase = base.endsWith('/') ? base : `${base}/`;
             const swUrl = new URL('sw.js', window.location.origin + normalizedBase).toString();
             navigator.serviceWorker
