@@ -216,11 +216,25 @@ async function addTrainingSample() {
 
     statusEl.textContent = '⏳ Extracting features...';
     
-    // Analyze the audio buffer to extract features
+    // Analyze the audio buffer to extract features (mirror main app flow)
+    const sampleRate = audioBuffer.sampleRate || 44100;
+    const channelData = audioBuffer.getChannelData(0);
+    const maxSamples = Math.min(channelData.length, Math.floor(sampleRate * 15));
+    const trimmed = channelData.slice(0, maxSamples);
+
+    // Extract Essentia-derived features first
     const essentiaFeatures = sharedAudioAnalyzer.extractEssentiaFeatures(audioBuffer);
-    const rhythmAnalysis = await sharedAudioAnalyzer.analyzeRhythm(audioBuffer);
-    const scaleAnalysis = await sharedAudioAnalyzer.detectScale(audioBuffer);
-    const spectralAnalysis = await sharedAudioAnalyzer.analyzeSpectralProperties(audioBuffer);
+    // Rhythm from PCM
+    const rhythmAnalysis = sharedAudioAnalyzer.analyzeRhythm(trimmed);
+    // Minimal spectral summary derived from Essentia outputs
+    const spectralAnalysis = {
+      centroid: (essentiaFeatures?.rawFeatures?.centroid) || ((essentiaFeatures?.centroid || 0.5) * 22050),
+      rolloff: (essentiaFeatures?.rawFeatures?.rolloff) || ((essentiaFeatures?.rolloff || 0.7) * 22050),
+      brightness: Math.max(0, Math.min(1, essentiaFeatures?.centroid ?? 0.5)),
+      flux: essentiaFeatures?.spectralFlux || 0
+    };
+    // Scale not available here without pitch tracking; mark as Unknown (MLTrainer handles this)
+    const scaleAnalysis = { scale: 'Unknown', confidence: 0 };
 
     // Use MLTrainer's feature extraction
     const features = MLTrainer.extractMLFeatures(
