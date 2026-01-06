@@ -4,8 +4,10 @@
  */
 
 import MLTrainer from './mlTrainer.js';
+import { AudioAnalyzer } from './audioAnalyzer.js';
 
 let mlInitialized = false;
+let audioAnalyzer = null;
 
 /**
  * Initialize ML trainer UI
@@ -17,6 +19,11 @@ export async function initMLTrainerUI() {
   // Initialize ML system
   const success = await MLTrainer.init();
   mlInitialized = success;
+
+  // Initialize AudioAnalyzer for feature extraction
+  audioAnalyzer = new AudioAnalyzer();
+  await audioAnalyzer.initialize();
+  console.log('AudioAnalyzer initialized for ML training');
 
   // Create UI
   const html = `
@@ -200,17 +207,32 @@ async function addTrainingSample() {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
 
-    // TODO: Extract features from audioBuffer
-    // For now, create placeholder features
-    const features = [
-      Math.random(), Math.random(), Math.random(), Math.random(), Math.random(),
-      Math.random(), Math.random(), Math.random(), Math.random(), Math.random(),
-      Math.random(), Math.random(), Math.random(),
-    ];
+    // Extract real features using AudioAnalyzer
+    if (!audioAnalyzer) {
+      throw new Error('AudioAnalyzer not initialized');
+    }
 
+    statusEl.textContent = '⏳ Extracting features...';
+    
+    // Analyze the audio buffer to extract features
+    const essentiaFeatures = audioAnalyzer.extractEssentiaFeatures(audioBuffer);
+    const rhythmAnalysis = await audioAnalyzer.analyzeRhythm(audioBuffer);
+    const scaleAnalysis = await audioAnalyzer.detectScale(audioBuffer);
+    const spectralAnalysis = await audioAnalyzer.analyzeSpectralProperties(audioBuffer);
+
+    // Use MLTrainer's feature extraction
+    const features = MLTrainer.extractMLFeatures(
+      rhythmAnalysis,
+      scaleAnalysis,
+      spectralAnalysis,
+      essentiaFeatures,
+      null
+    );
+
+    console.log('[Trainer] Extracted features:', features);
     MLTrainer.addTrainingSample(features, label);
 
-    statusEl.textContent = `✅ Added sample: ${label}`;
+    statusEl.textContent = `✅ Added sample: ${label} (${features.length} features)`;
     statusEl.className = 'status-message success';
 
     // Clear inputs

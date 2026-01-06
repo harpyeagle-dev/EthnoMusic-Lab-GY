@@ -1,5 +1,6 @@
 import Essentia from 'essentia.js/dist/essentia-wasm.web.js';
 import MLTrainer from './mlTrainer.js';
+import IndigenousTrainer from './indigenousTrainer.js';
 import { genreMLClassifier } from './genreMLModel.js';
 
 export class AudioAnalyzer {
@@ -14,6 +15,8 @@ export class AudioAnalyzer {
         this._hannCache = new Map();
         this.mlClassifier = genreMLClassifier;
         this.mlClassifierReady = false;
+        this.indigenousClassifier = IndigenousTrainer;
+        this.indigenousClassifierReady = false;
     }
 
     /**
@@ -61,6 +64,20 @@ export class AudioAnalyzer {
         } catch (error) {
             console.warn('ML Genre Classifier initialization failed, using heuristic classification:', error);
             this.mlClassifierReady = false;
+        }
+
+        // Initialize Indigenous Classifier
+        try {
+            const indigenous = await this.indigenousClassifier.initialize();
+            this.indigenousClassifierReady = indigenous;
+            if (indigenous) {
+                console.log('✅ Indigenous Classifier trained and ready');
+            } else {
+                console.warn('Indigenous Classifier initialization failed');
+            }
+        } catch (error) {
+            console.warn('Indigenous Classifier initialization error:', error);
+            this.indigenousClassifierReady = false;
         }
     }
 
@@ -1297,37 +1314,39 @@ export class AudioAnalyzer {
             genres['Pop'] -= 0.3;
         }
 
-        // Tie-breaker: Reggae vs Indigenous (distinguish early)
-        // Indigenous music characteristics: polyrhythmic + pentatonic + complex rhythms + moderate/higher complexity
-        // Reggae characteristics: moderate tempo (80-120) + light percussion + lower complexity
+        // Reggae vs Indigenous: Both can be polyrhythmic + pentatonic, so we use TEMPO as primary differentiator
+        // Reggae: VERY SPECIFIC tempo range (80-120 BPM, sweet spot 95-110)
+        // Indigenous: ANY tempo, can be much slower or faster
         
-        // EARLY Indigenous detection - runs BEFORE reggae to establish a baseline
-        // Indigenous music: polyrhythmic + pentatonic + either high complexity OR high spectral centroid diversity
+        const reggaeTempoSignature = (tempo >= 80 && tempo < 120);
+        const reggaeReggaeConditionMet = (reggaeTempoSignature && 
+                                          regularity < 0.12 && 
+                                          percussiveness >= 0.02 && percussiveness <= 0.08 && 
+                                          complexity < 0.74);
+        
+        // Indigenous: polyrhythmic + pentatonic + (high complexity OR high spectral diversity)
+        // This runs INDEPENDENTLY of reggae
         const isIndigenousPattern = polyrhythmic && 
                                     scale.includes('Pentatonic') && 
                                     (complexity > 0.65 || spectralCentroid > 10000) &&
                                     regularity < 0.12;
         
-        // Reggae check FIRST - must be evaluated before indigenousStrong
-        // Reggae is more specific: moderate tempo + light percussion + moderate complexity
-        const reggaeConditionMet = (tempo >= 80 && tempo < 120 && 
-                                    regularity < 0.12 && 
-                                    percussiveness >= 0.02 && percussiveness <= 0.08 && 
-                                    complexity < 0.74 && 
-                                    !isIndigenousPattern); // Exclude indigenous from reggae
-        
         // Indigenous detector to avoid misclassifying polyrhythmic pentatonic material as reggae
         // BUT: exclude actual reggae from this guard
-        const indigenousStrong = (!reggaeConditionMet) && polyrhythmic && scale.includes('Pentatonic') && regularity < 0.08 && spectralCentroid > 8000 && complexity >= 0.65;
+        const indigenousStrong = (!reggaeTempoSignature) && polyrhythmic && scale.includes('Pentatonic') && regularity < 0.08 && spectralCentroid > 8000 && complexity >= 0.65;
         
-        // EARLY INDIGENOUS BOOST - run before reggae boost so indigenous is established
-        if (isIndigenousPattern) {
+        // DIFFERENTIATION: If BOTH reggae AND indigenous could match, use tempo as tiebreaker
+        // Reggae is tempo-specific, so tempo being in 80-120 range favors reggae
+        const reggaeConditionMet = reggaeReggaeConditionMet; // Now independent
+        
+        // EARLY INDIGENOUS BOOST - only if NOT in reggae tempo range
+        if (isIndigenousPattern && !reggaeTempoSignature) {
             genres['World'] += 0.8;
             genres['Folk'] += 0.5;
-            genres['Reggae'] -= 0.5; // Penalize reggae early for indigenous patterns
-            console.log('🌍 Indigenous pattern detected');
+            console.log('🌍 Indigenous pattern detected (outside reggae tempo range)');
         }
         
+
         if (indigenousStrong) {
             genres['World'] += 1.6;
             genres['Folk'] += 0.8;
