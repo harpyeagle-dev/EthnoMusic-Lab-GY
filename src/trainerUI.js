@@ -70,7 +70,7 @@ export async function initMLTrainerUI() {
           <h3>Step 2: Review Collected Data</h3>
           <div id="statsDisplay" class="stats-box">
             <p>Samples collected: <strong id="sampleCount">0</strong></p>
-            <p>Ragas labeled: <strong id="ragaCount">0</strong></p>
+            <p>Samples labeled: <strong id="ragaCount">0</strong></p>
             <p>Model trained: <strong id="modelStatus">No</strong></p>
           </div>
 
