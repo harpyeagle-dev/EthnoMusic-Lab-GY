@@ -1705,7 +1705,8 @@ export class AudioAnalyzer {
                     confidence: (mlPrediction.confidence * 100).toFixed(1),
                     modelTrained: true
                 } : { modelTrained: false }),
-                mode: mlOverride ? 'ML_OVERRIDE' : 'HEURISTIC' // expose mode in debug
+                mode: mlOverride ? 'ML_OVERRIDE' : 'HEURISTIC', // expose mode in debug
+                runId: options?.runId || null
             };
             results.__ml = !!(mlGenrePredictionForDebug || mlPrediction);
             console.log('DEBUG METADATA ATTACHED:', JSON.stringify(results.__debug, null, 2));

@@ -1342,6 +1342,11 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
     const cancelBtn = document.getElementById('cancel-analysis');
     try {
         // console.log('analyzeAudioFile called');
+        // New run: reset any cross-run analyzer state and stamp a runId
+        const runId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        if (audioAnalyzer) {
+            audioAnalyzer.previousSpectrum = null;
+        }
         // Prepare cancel handling
         analysisCancelled = false;
         let onCancel;
@@ -1503,6 +1508,7 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
             timestamps: timestamps,
             spectral: spectralAnalysis,
             analyzedAt: new Date().toISOString(),
+            runId,
             ml: mlFeatures ? { enabled: mlGenreEnabled, features: mlFeatures } : { enabled: false }
         };
         
@@ -1522,7 +1528,7 @@ async function analyzeAudioFile(audioBuffer, filename = 'audio-file', audioPlaye
             scaleAnalysis,
             spectralAnalysis,
             essentiaFeatures,
-            { mlWeight: mlWeightParam ?? 0.25, tuning: tuningParam }
+            { mlWeight: mlWeightParam ?? 0.25, tuning: tuningParam, runId }
         );
         
         // Store genre in analysis data
