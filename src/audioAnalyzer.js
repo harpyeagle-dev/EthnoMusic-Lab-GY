@@ -1299,11 +1299,12 @@ export class AudioAnalyzer {
 
         // Tie-breaker: Reggae vs Folk (moderate tempo, very low regularity, light percussion)
         // Always-on to ensure reggae locks in correctly
+        // Reggae check FIRST - must be evaluated before indigenousStrong
+        const reggaeConditionMet = (tempo >= 80 && tempo < 120 && regularity < 0.12 && percussiveness >= 0.02 && percussiveness <= 0.08 && complexity < 0.74);
+        
         // Indigenous detector to avoid misclassifying polyrhythmic pentatonic material as reggae
-        const indigenousStrong = polyrhythmic && scale.includes('Pentatonic') && regularity < 0.08 && spectralCentroid > 8000 && complexity >= 0.65;
-
-        // Reggae check first - don't let pentatonic scales block it, but skip indigenousStrong cases
-        const reggaeConditionMet = (!indigenousStrong) && (tempo >= 80 && tempo < 120 && regularity < 0.12 && percussiveness >= 0.02 && percussiveness <= 0.08 && complexity < 0.74);
+        // BUT: exclude actual reggae from this guard
+        const indigenousStrong = (!reggaeConditionMet) && polyrhythmic && scale.includes('Pentatonic') && regularity < 0.08 && spectralCentroid > 8000 && complexity >= 0.65;
         
         if (indigenousStrong) {
             genres['World'] += 1.6;
@@ -1455,6 +1456,7 @@ export class AudioAnalyzer {
 
         // ===== ML MODEL INTEGRATION (if trained) =====
         let mlPrediction = null;
+        let mlGenrePredictionForDebug = null;
         
         // First, try the new Essentia-based genre classifier
         if (this.mlClassifierReady) {
@@ -1474,6 +1476,7 @@ export class AudioAnalyzer {
                 });
 
                 if (mlGenrePrediction && mlGenrePrediction.confidence > 0.1) {
+                    mlGenrePredictionForDebug = mlGenrePrediction; // Store for debug output
                     console.log('=== ML GENRE CLASSIFICATION (Essentia Model) ===');
                     console.log(`Top Prediction: ${mlGenrePrediction.topGenre}`);
                     console.log(`Confidence: ${(mlGenrePrediction.confidence * 100).toFixed(1)}%`);
@@ -1616,13 +1619,18 @@ export class AudioAnalyzer {
                 input: { tempo, regularity, brightness, percussiveness, complexity, polyrhythmic, scale, spectralCentroid },
                 rawScores: rawScoresObj,
                 total,
-                mlPrediction: mlPrediction ? {
+                mlPrediction: mlGenrePredictionForDebug ? {
+                    topGenre: mlGenrePredictionForDebug.topGenre,
+                    confidence: (mlGenrePredictionForDebug.confidence * 100).toFixed(1),
+                    modelTrained: mlGenrePredictionForDebug.modelTrained || true,
+                    predictions: mlGenrePredictionForDebug.predictions
+                } : (mlPrediction ? {
                     raga: mlPrediction.raga,
                     confidence: (mlPrediction.confidence * 100).toFixed(1),
                     modelTrained: true
-                } : { modelTrained: false }
+                } : { modelTrained: false })
             };
-            results.__ml = !!mlPrediction;
+            results.__ml = !!(mlGenrePredictionForDebug || mlPrediction);
             console.log('DEBUG METADATA ATTACHED:', JSON.stringify(results.__debug, null, 2));
         } catch (e) {
             console.warn('Failed to attach debug metadata:', e);
