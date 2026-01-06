@@ -139,8 +139,22 @@ class GenreMLClassifier {
         }
 
         try {
-            // MOCK: Return trained model prediction for testing
-            // This simulates a working ML model with modelTrained: true
+            // Prefer real models when available; otherwise use feature-based fallback (not trained)
+            const ortPrediction = await this.predictWithORTModel(features);
+            if (ortPrediction) {
+                // ONNX model loaded → treat as trained
+                ortPrediction.modelTrained = true;
+                return ortPrediction;
+            }
+
+            const tfPrediction = await this.predictWithTFModel(features);
+            if (tfPrediction) {
+                // TF.js model loaded → treat as trained
+                tfPrediction.modelTrained = true;
+                return tfPrediction;
+            }
+
+            // Fallback: feature-based heuristic predictor (NOT trained)
             const predictions = this.predictFromFeatures({
                 tempo: features.tempo,
                 spectralCentroid: features.spectralCentroid,
@@ -151,12 +165,8 @@ class GenreMLClassifier {
                 complexity: features.complexity,
                 regularity: features.regularity
             });
-
-            // Mark as trained model
-            if (predictions) {
-                predictions.modelTrained = true;
-            }
-
+            // Explicitly mark fallback as not trained to avoid overrides
+            if (predictions) predictions.modelTrained = false;
             return predictions;
         } catch (error) {
             console.error('Error during ML genre classification:', error);

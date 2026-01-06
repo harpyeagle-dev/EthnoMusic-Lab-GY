@@ -92,15 +92,27 @@ export class AudioAnalyzer {
         const sampleRate = buffer?.sampleRate || this.audioContext?.sampleRate || 44100;
         const sourceArray = buffer?.getChannelData ? buffer.getChannelData(0) : buffer;
         if (!sourceArray || typeof sourceArray.length !== 'number') {
-            return { ...this.extractBasicFeatures(new Float32Array(0)), rawAudio: null, sampleRate };
+            return { ...this.extractBasicFeatures(new Float32Array(0)), rawAudio: null, sampleRate, sourceHash: `empty|${sampleRate}` };
         }
 
         const maxSamples = Math.min(sourceArray.length, Math.floor(sampleRate * 15));
         const audioSlice = sourceArray.slice(0, maxSamples);
 
+        // Build a lightweight, deterministic signature of the input so we can detect stale/identical inputs
+        // Uses length, energy, and 8 evenly spaced sample points
+        let sigSamples = [];
+        const step = Math.max(1, Math.floor(audioSlice.length / 8));
+        for (let i = 0; i < 8; i++) {
+            const idx = Math.min(audioSlice.length - 1, i * step);
+            const v = audioSlice[idx] || 0;
+            sigSamples.push(Number(v.toFixed(6)));
+        }
+        const energy = this.calculateEnergy(audioSlice);
+        const sourceHash = `${audioSlice.length}|${sampleRate}|${energy}|${sigSamples.join(',')}`;
+
         if (!this.essentiaReady || !this.essentia) {
             const basic = this.extractBasicFeatures(audioSlice);
-            return { ...basic, rawAudio: audioSlice, sampleRate };
+            return { ...basic, rawAudio: audioSlice, sampleRate, sourceHash };
         }
 
         try {
@@ -115,7 +127,8 @@ export class AudioAnalyzer {
                 tempo: 0,
                 rawFeatures: {},
                 rawAudio: audioSlice,
-                sampleRate
+                sampleRate,
+                sourceHash
             };
 
             // Extract MFCC (Mel-frequency cepstral coefficients) - capture timbral characteristics
@@ -198,7 +211,7 @@ export class AudioAnalyzer {
         } catch (err) {
             console.error('[Essentia] Feature extraction failed:', err);
             const fallback = this.extractBasicFeatures(audioSlice);
-            return { ...fallback, rawAudio: audioSlice, sampleRate };
+            return { ...fallback, rawAudio: audioSlice, sampleRate, sourceHash };
         }
     }
 
@@ -1679,12 +1692,13 @@ export class AudioAnalyzer {
         try {
             results.__debug = {
                 input: { tempo, regularity, brightness, percussiveness, complexity, polyrhythmic, scale, spectralCentroid },
+                bufferHash: essentiaFeatures?.sourceHash || null,
                 rawScores: rawScoresObj,
                 total,
                 mlPrediction: mlGenrePredictionForDebug ? {
                     topGenre: mlGenrePredictionForDebug.topGenre,
                     confidence: (mlGenrePredictionForDebug.confidence * 100).toFixed(1),
-                    modelTrained: mlGenrePredictionForDebug.modelTrained || true,
+                    modelTrained: !!mlGenrePredictionForDebug.modelTrained,
                     predictions: mlGenrePredictionForDebug.predictions
                 } : (mlPrediction ? {
                     raga: mlPrediction.raga,
