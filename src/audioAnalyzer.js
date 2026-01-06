@@ -1499,6 +1499,7 @@ export class AudioAnalyzer {
         // ===== ML MODEL INTEGRATION (if trained) =====
         let mlPrediction = null;
         let mlGenrePredictionForDebug = null;
+        let mlOverride = false; // when true, ML results will override heuristic results
         
         // First, try the new Essentia-based genre classifier
         if (this.mlClassifierReady) {
@@ -1519,6 +1520,10 @@ export class AudioAnalyzer {
 
                 if (mlGenrePrediction && mlGenrePrediction.confidence > 0.1) {
                     mlGenrePredictionForDebug = mlGenrePrediction; // Store for debug output
+                    // Determine if we should fully override heuristics with ML
+                    if (mlGenrePrediction.modelTrained === true) {
+                        mlOverride = true;
+                    }
                     console.log('=== ML GENRE CLASSIFICATION (Essentia Model) ===');
                     console.log(`Top Prediction: ${mlGenrePrediction.topGenre}`);
                     console.log(`Confidence: ${(mlGenrePrediction.confidence * 100).toFixed(1)}%`);
@@ -1527,15 +1532,19 @@ export class AudioAnalyzer {
                         console.log(`  ${i + 1}. ${p.genre}: ${(p.confidence * 100).toFixed(1)}%`);
                     });
 
-                    // Blend ML predictions with heuristic scores
-                    const mlBlendWeight = 0.4; // 40% ML, 60% heuristic
-                    mlGenrePrediction.predictions.forEach(pred => {
-                        if (genres.hasOwnProperty(pred.genre)) {
-                            const mlBoost = pred.confidence * 10 * mlBlendWeight; // Scale up to match score range
-                            genres[pred.genre] += mlBoost;
-                            console.log(`ML Boost: ${pred.genre} +${mlBoost.toFixed(3)}`);
-                        }
-                    });
+                    // If not overriding, blend ML with heuristics (legacy behavior)
+                    if (!mlOverride) {
+                        const mlBlendWeight = 0.4; // 40% ML, 60% heuristic
+                        mlGenrePrediction.predictions.forEach(pred => {
+                            if (genres.hasOwnProperty(pred.genre)) {
+                                const mlBoost = pred.confidence * 10 * mlBlendWeight; // Scale up to match score range
+                                genres[pred.genre] += mlBoost;
+                                console.log(`ML Boost: ${pred.genre} +${mlBoost.toFixed(3)}`);
+                            }
+                        });
+                    } else {
+                        console.log('[ML Override] Using trained ML predictions; skipping heuristic blending.');
+                    }
                 }
             } catch (err) {
                 console.warn('[ML Genre Classifier] Error during prediction:', err);
@@ -1650,7 +1659,18 @@ export class AudioAnalyzer {
             }
         }
 
+        // If ML is trained, override final results with ML predictions (keep heuristics for debug)
+        if (mlOverride && mlGenrePredictionForDebug && Array.isArray(mlGenrePredictionForDebug.predictions)) {
+            const top = mlGenrePredictionForDebug.predictions
+                .slice(0, 5)
+                .map(p => ({ genre: p.genre, confidence: Math.round((p.confidence || 0) * 100) }));
+            if (top.length > 0) {
+                results = top;
+            }
+        }
+
         console.log('=== FINAL GENRE RESULTS ===');
+        if (mlOverride) console.log('[Mode] ML override (trained model)');
         results.forEach((r, i) => {
             console.log(`${i + 1}. ${r.genre}: ${r.confidence}%`);
         });
@@ -1670,7 +1690,8 @@ export class AudioAnalyzer {
                     raga: mlPrediction.raga,
                     confidence: (mlPrediction.confidence * 100).toFixed(1),
                     modelTrained: true
-                } : { modelTrained: false })
+                } : { modelTrained: false }),
+                mode: mlOverride ? 'ML_OVERRIDE' : 'HEURISTIC' // expose mode in debug
             };
             results.__ml = !!(mlGenrePredictionForDebug || mlPrediction);
             console.log('DEBUG METADATA ATTACHED:', JSON.stringify(results.__debug, null, 2));
