@@ -206,12 +206,38 @@ const MLTrainer = {
       return null;
     }
 
+    if (this.ragaLabels.size < 2) {
+      console.error('[ML] Need at least 2 different classes to train');
+      return null;
+    }
+
     try {
       console.log(`[ML] Starting training: ${this.trainingData.length} samples, ${this.ragaLabels.size} ragas`);
 
       // Prepare data
       const features = this.trainingData.map(d => d.features);
       const labels = this.trainingData.map(d => this.ragaLabels.get(d.label));
+
+      // Validate features
+      if (!features || features.length === 0) {
+        throw new Error('No features found in training data');
+      }
+      if (!features[0] || !Array.isArray(features[0])) {
+        throw new Error('Features must be arrays');
+      }
+      const featureCount = features[0].length;
+      if (featureCount === 0) {
+        throw new Error('Features cannot be empty arrays');
+      }
+
+      // Validate all samples have same feature count
+      for (let i = 0; i < features.length; i++) {
+        if (!features[i] || features[i].length !== featureCount) {
+          throw new Error(`Sample ${i} has ${features[i]?.length || 0} features, expected ${featureCount}`);
+        }
+      }
+
+      console.log(`[ML] Training data validated: ${features.length} samples, ${featureCount} features each, ${this.ragaLabels.size} classes`);
 
       // Convert to tensors
       const xs = tf.tensor2d(features);
@@ -247,7 +273,10 @@ const MLTrainer = {
       });
 
       console.log('[ML] Training complete');
-      console.log('Final accuracy:', history.history.acc[history.history.acc.length - 1]);
+      // TensorFlow.js uses 'acc' for accuracy, not 'accuracy'
+      const accuracyHistory = history.history.acc || history.history.accuracy || [];
+      const finalAccuracy = accuracyHistory.length > 0 ? accuracyHistory[accuracyHistory.length - 1] : 0;
+      console.log('Final accuracy:', finalAccuracy);
 
       // Cleanup tensors
       xs.dispose();
@@ -261,10 +290,11 @@ const MLTrainer = {
         epochs,
         samples: this.trainingData.length,
         ragas: this.ragaLabels.size,
-        finalAccuracy: history.history.acc[history.history.acc.length - 1],
+        finalAccuracy: finalAccuracy,
       };
     } catch (err) {
       console.error('[ML] Training failed:', err);
+      console.error('[ML] Error details:', err.message || err);
       return null;
     }
   },

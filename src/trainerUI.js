@@ -387,10 +387,12 @@ async function trainModel() {
         window.showToast('success', `🧠 Model trained! Accuracy: ${(result.finalAccuracy * 100).toFixed(1)}%`, 4000);
       }
     } else {
-      resultEl.textContent = '❌ Training failed';
+      // Training failed - show detailed error from console
+      const errorMsg = 'Training failed. Check browser console for details.';
+      resultEl.textContent = `❌ ${errorMsg}`;
       resultEl.className = 'status-message error';
       if (window.showToast) {
-        window.showToast('error', 'Training failed');
+        window.showToast('error', errorMsg);
       }
     }
 
@@ -399,6 +401,10 @@ async function trainModel() {
   } catch (err) {
     resultEl.textContent = `❌ Error: ${err.message}`;
     resultEl.className = 'status-message error';
+    if (window.showToast) {
+      window.showToast('error', `Error: ${err.message}`);
+    }
+    console.error('[Trainer] Training error:', err);
   } finally {
     trainBtn.disabled = false;
   }
