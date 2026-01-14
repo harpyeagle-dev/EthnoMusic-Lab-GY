@@ -1,17 +1,20 @@
-/* index.js — World EthnoMusic Lab (clean bootstrap + safe Analyze UI)
-   - Tabs + accessibility menu
-   - Dark mode (menu + FAB)
-   - Classroom mode (master gain cap)
-   - Leaflet map init hook
-   - Analyze tab: file upload → decode → analyze (NO wiping chart DOM)
-   - Record tab + Live pitch + Compose: safe initializers (expects your existing modules)
+/* src/index.js — World EthnoMusic Lab (RESTORE + FIXES, minimal & compatible)
+   Goals:
+   ✅ Stop 404-driven “nothing works” (correct entry expectations)
+   ✅ Do NOT rewrite your app logic — just bootstrap safely
+   ✅ Ensure required globals exist: analyzeAudioFile, initializeWorldMap/initWorldMap hooks, etc.
+   ✅ Prevent duplicate listeners + DOM wipes
+   ✅ Work with your existing files:
+      utils/, advancedFeatures.js, audioAnalyzer.js, culturesData.js, expandedCultures.js,
+      extendedFeatures.js, games.js, genreMLModel.js, indigenousTrainer.js, mlTrainer.js,
+      trainerUI.js, etc.
 */
 
 'use strict';
 
-/* =========================
-   Small DOM helpers
-========================= */
+/* ---------------------------
+   Helpers
+--------------------------- */
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
@@ -20,93 +23,53 @@ function on(el, ev, fn, opts) {
   el.addEventListener(ev, fn, opts);
 }
 
-function show(el) { if (el) el.style.display = 'block'; }
+function show(el, display = 'block') { if (el) el.style.display = display; }
 function hide(el) { if (el) el.style.display = 'none'; }
-function setText(el, txt) { if (el) el.textContent = txt; }
 
-function safeHTML(el, html) { if (el) el.innerHTML = html; }
-
-/* =========================
-   Toast (optional)
-========================= */
-function showToast(type, message) {
-  // If you already have a toast system, remove this.
-  console[type === 'error' ? 'error' : 'log']('[Toast]', type, message);
+function safeCall(fn, ...args) {
+  try { return typeof fn === 'function' ? fn(...args) : undefined; }
+  catch (e) { console.error(e); return undefined; }
 }
 
-/* =========================
-   Global Audio (optional master gain)
-========================= */
-let audioContext = null;
+/* ---------------------------
+   Global AudioContext + master gain
+   (keeps your classroom-mode cap working)
+--------------------------- */
+window.audioContext = window.audioContext || null;
+
 function ensureAudioContext() {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  if (!window.audioContext) {
+    window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
   }
+  // Create master gain once
   if (!window.__MASTER_GAIN) {
     try {
-      const master = audioContext.createGain();
-      master.gain.value = 0.35;
-      master.connect(audioContext.destination);
-      window.__MASTER_GAIN = master;
+      const g = window.audioContext.createGain();
+      g.gain.value = 0.35;
+      g.connect(window.audioContext.destination);
+      window.__MASTER_GAIN = g;
     } catch (e) {
       console.warn('Master gain creation failed:', e);
     }
   }
-  return audioContext;
+  return window.audioContext;
 }
 
-async function resumeAudioIfNeeded() {
+async function resumeAudio() {
   const ctx = ensureAudioContext();
   if (ctx.state === 'suspended') {
     await ctx.resume();
   }
+  return ctx;
 }
 
-/* =========================
-   Analyze status banner (prevents DOM wipe)
-========================= */
-function ensureAnalysisStatus() {
-  const results = $('#analysis-results');
-  if (!results) return null;
-
-  let status = $('#analysis-status');
-  if (!status) {
-    status = document.createElement('div');
-    status.id = 'analysis-status';
-    status.style.cssText = `
-      margin: 0 0 16px;
-      padding: 14px 16px;
-      border-radius: 10px;
-      font-weight: 700;
-      border-left: 5px solid #667eea;
-      background: #eef2ff;
-      color: #1e3a8a;
-    `;
-    results.prepend(status);
-  }
-  return status;
-}
-
-function setAnalysisStatus(message, opts = {}) {
-  const results = $('#analysis-results');
-  if (results) results.style.display = 'block';
-
-  const status = ensureAnalysisStatus();
-  if (!status) return;
-
-  const { bg = '#eef2ff', color = '#1e3a8a', border = '#667eea' } = opts;
-  status.style.background = bg;
-  status.style.color = color;
-  status.style.borderLeftColor = border;
-  status.textContent = message;
-}
-
-/* =========================
-   Tabs
-========================= */
+/* ---------------------------
+   Tabs (show/hide panels properly)
+--------------------------- */
 function initializeTabs() {
   const tabButtons = $$('.tab-btn');
   const tabPanels = $$('.tab-content');
+  if (!tabButtons.length || !tabPanels.length) return;
 
   function activateTab(name) {
     tabButtons.forEach(btn => {
@@ -121,48 +84,50 @@ function initializeTabs() {
       panel.style.display = active ? 'block' : 'none';
     });
 
-    // Leaflet maps need resize fix when shown
+    // Leaflet needs a resize after becoming visible
     if (name === 'explore') {
-      setTimeout(() => window.__WORLD_MAP?.invalidateSize?.(), 150);
-      setTimeout(() => window.__WORLD_MAP?.invalidateSize?.(), 600);
+      setTimeout(() => safeCall(window.__WORLD_MAP?.invalidateSize?.bind(window.__WORLD_MAP)), 150);
+      setTimeout(() => safeCall(window.__WORLD_MAP?.invalidateSize?.bind(window.__WORLD_MAP)), 600);
     }
   }
 
-  tabButtons.forEach(btn => {
-    on(btn, 'click', () => activateTab(btn.dataset.tab));
-  });
+  tabButtons.forEach(btn => on(btn, 'click', () => activateTab(btn.dataset.tab)));
 
-  // Make sure only the active panel is visible on load
+  // On load, enforce only active tab visible
   const activeBtn = tabButtons.find(b => b.classList.contains('active')) || tabButtons[0];
   if (activeBtn) activateTab(activeBtn.dataset.tab);
 }
 
-/* =========================
-   Accessibility menu toggle
-========================= */
+/* ---------------------------
+   Accessibility menu
+--------------------------- */
 function initializeAccessibilityMenu() {
   const toggle = $('#accessibility-menu-toggle');
   const menu = $('#accessibility-menu');
   if (!toggle || !menu) return;
 
+  // default hidden
+  if (!menu.style.display) menu.style.display = 'none';
+
   on(toggle, 'click', (e) => {
     e.stopPropagation();
-    const isOpen = menu.style.display !== 'none' && menu.style.display !== '';
-    menu.style.display = isOpen ? 'none' : 'grid';
-    toggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+    const open = menu.style.display !== 'none';
+    menu.style.display = open ? 'none' : 'grid';
+    toggle.setAttribute('aria-expanded', open ? 'false' : 'true');
   });
 
   on(document, 'click', (e) => {
-    if (!menu.contains(e.target) && e.target !== toggle) {
+    if (menu.style.display === 'none') return;
+    if (!menu.contains(e.target) && !toggle.contains(e.target)) {
       menu.style.display = 'none';
       toggle.setAttribute('aria-expanded', 'false');
     }
   });
 }
 
-/* =========================
-   Dark Mode (menu + FAB)
-========================= */
+/* ---------------------------
+   Dark mode (menu + FAB)
+--------------------------- */
 function initializeDarkMode() {
   const btnMenu = $('#dark-mode-toggle-menu');
   const btnFab = $('#dark-mode-toggle-fab');
@@ -182,17 +147,18 @@ function initializeDarkMode() {
   apply();
 }
 
-/* =========================
-   Classroom Mode (volume cap)
-========================= */
+/* ---------------------------
+   Classroom mode (volume cap)
+--------------------------- */
 function initializeClassroomMode() {
   const toggle = $('#classroom-mode-toggle');
   let enabled = localStorage.getItem('classroomMode') === 'true';
 
   function apply() {
     document.body.classList.toggle('classroom-mode', enabled);
-    // cap master gain if available
     if (window.__MASTER_GAIN) window.__MASTER_GAIN.gain.value = enabled ? 0.18 : 0.35;
+
+    // keep your UI label simple
     if (toggle) toggle.textContent = enabled ? '🏫 On' : '🏫 Classroom Mode';
     localStorage.setItem('classroomMode', String(enabled));
   }
@@ -201,176 +167,221 @@ function initializeClassroomMode() {
   apply();
 }
 
-/* =========================
-   Audio unlock overlay (mobile autoplay restrictions)
-========================= */
+/* ---------------------------
+   Audio unlock overlay (Safari/iOS autoplay)
+--------------------------- */
 function initializeAudioUnlockOverlay() {
   const overlay = $('#audio-unlock-overlay');
   const btn = $('#audio-unlock-button');
   const status = $('#audio-status');
   if (!overlay || !btn) return;
 
-  // Show overlay if audio is locked (heuristic)
-  const shouldShow = true; // You can refine this check if you want
-  if (shouldShow) {
-    overlay.style.display = 'flex';
-  }
+  // Show overlay until user taps once (safe for mobile)
+  overlay.style.display = 'flex';
 
   on(btn, 'click', async () => {
     try {
-      setText(status, 'Unlocking audio…');
-      await resumeAudioIfNeeded();
+      if (status) status.textContent = 'Unlocking audio…';
+      await resumeAudio();
       overlay.style.display = 'none';
-      setText(status, '');
+      if (status) status.textContent = '';
     } catch (e) {
       console.error(e);
-      setText(status, 'Could not enable audio on this device.');
+      if (status) status.textContent = 'Could not enable audio. Try again.';
     }
   });
 }
 
-/* =========================
-   Leaflet world map init hook
-   (expects you have initWorldMap() elsewhere)
-========================= */
+/* ---------------------------
+   World map hook
+   Your other scripts should define one of these:
+   - window.initializeWorldMap()
+   - window.initWorldMap()
+   If they return/assign a Leaflet map, keep it in window.__WORLD_MAP
+--------------------------- */
 function initializeWorldMapSafe() {
   const mapEl = $('#world-map');
   if (!mapEl) return;
 
   try {
     if (typeof window.initializeWorldMap === 'function') {
-      window.initializeWorldMap(); // your existing map function
+      const m = window.initializeWorldMap();
+      if (m) window.__WORLD_MAP = m;
     } else if (typeof window.initWorldMap === 'function') {
-      window.initWorldMap();
+      const m = window.initWorldMap();
+      if (m) window.__WORLD_MAP = m;
     } else {
+      // Don’t hard-fail — just warn (your old app may init elsewhere)
       console.warn('No world map initializer found (initializeWorldMap / initWorldMap).');
     }
   } catch (e) {
     console.error('World map init failed:', e);
-    mapEl.innerHTML = '<p style="padding: 20px; background: #ffecec; border: 1px solid #f5c2c2; border-radius: 8px; color: #c0392b;">Map could not load.</p>';
+    mapEl.innerHTML =
+      '<p style="padding:14px;background:#ffebee;border-left:4px solid #f44336;border-radius:8px;color:#b71c1c;">Map failed to load.</p>';
   }
 }
 
-/* =========================
-   Analyze tab (upload + decode + analyze)
-   Requires your existing audioAnalyzer + analyzeAudioFile()
-========================= */
-async function decodeAudioBuffer(arrayBuffer, file, audioCtx) {
-  const bufferCopy = arrayBuffer.slice(0);
+/* ---------------------------
+   Analyze tab: only wire the file input.
+   IMPORTANT:
+   - We do NOT replace your analyzer implementation.
+   - We only ensure analyzeAudioFile exists globally if your analyzer is module-scoped.
+--------------------------- */
+function ensureAnalyzerGlobals() {
+  // If your analyzer code defines analyzeAudioFile in module scope, it won’t be on window.
+  // If it is already on window, do nothing.
+  // If it exists as a global function name in current scope (non-module script),
+  // browsers still typically attach it to window. But some bundlers don’t.
+  if (typeof window.analyzeAudioFile === 'function') return;
 
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Audio decode timeout after 8 seconds')), 8000)
-  );
+  // Try to find it if it was declared as a top-level function in a non-module script:
+  try {
+    // eslint-disable-next-line no-undef
+    if (typeof analyzeAudioFile === 'function') window.analyzeAudioFile = analyzeAudioFile;
+  } catch (_) {}
 
-  const decodePromise = new Promise(async (resolve, reject) => {
-    try {
-      const decoded = await audioCtx.decodeAudioData(bufferCopy);
-      resolve(decoded);
-    } catch (err) {
-      reject(err);
-    }
-  });
-
-  return Promise.race([decodePromise, timeout]);
+  // Same for AudioAnalyzer instance if needed (optional)
+  try {
+    // eslint-disable-next-line no-undef
+    if (!window.audioAnalyzer && typeof audioAnalyzer !== 'undefined') window.audioAnalyzer = audioAnalyzer;
+  } catch (_) {}
 }
 
-function initializeAnalyzer() {
+async function decodeAudioBuffer(arrayBuffer, audioCtx) {
+  // decodeAudioData consumes buffers in some browsers; slice to be safe
+  const copy = arrayBuffer.slice(0);
+
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Audio decode timeout (8s). Try WAV/OGG/FLAC.')), 8000)
+  );
+
+  const decode = new Promise((resolve, reject) => {
+    // Promise form supported by modern browsers
+    audioCtx.decodeAudioData(copy).then(resolve).catch(reject);
+  });
+
+  return Promise.race([decode, timeout]);
+}
+
+function analyzeStatusBanner(message, kind = 'info') {
+  const results = $('#analysis-results');
+  if (results) results.style.display = 'block';
+
+  let status = $('#analysis-status');
+  if (!status && results) {
+    status = document.createElement('div');
+    status.id = 'analysis-status';
+    status.style.cssText = 'margin:0 0 14px;padding:12px 14px;border-radius:10px;font-weight:700;border-left:4px solid #667eea;background:#eef2ff;color:#1e3a8a;';
+    results.prepend(status);
+  }
+  if (!status) return;
+
+  const palette = {
+    info:  { bg:'#eef2ff', color:'#1e3a8a', border:'#667eea' },
+    warn:  { bg:'#fff3cd', color:'#7a4b00', border:'#ffc107' },
+    ok:    { bg:'#e8f5e9', color:'#1b5e20', border:'#4caf50' },
+    error: { bg:'#ffebee', color:'#b71c1c', border:'#f44336' }
+  }[kind] || { bg:'#eef2ff', color:'#1e3a8a', border:'#667eea' };
+
+  status.style.background = palette.bg;
+  status.style.color = palette.color;
+  status.style.borderLeftColor = palette.border;
+  status.textContent = message;
+}
+
+function initializeAnalyzeUpload() {
   const fileInput = $('#file-input');
   const cancelBtn = $('#cancel-analysis');
   const results = $('#analysis-results');
-
   if (!fileInput || !results) return;
 
-  let analysisCancelled = false;
+  let cancelled = false;
 
   on(cancelBtn, 'click', () => {
-    analysisCancelled = true;
-    setAnalysisStatus('✖️ Analysis cancelled.', { bg: '#ffebee', color: '#b71c1c', border: '#f44336' });
+    cancelled = true;
     hide(cancelBtn);
+    analyzeStatusBanner('✖️ Analysis cancelled.', 'error');
   });
 
   on(fileInput, 'change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    analysisCancelled = false;
-    show(cancelBtn);
+    cancelled = false;
+    show(cancelBtn, 'inline-block');
     show(results);
 
-    try {
-      setAnalysisStatus('🔄 LOADING FILE…', { bg: '#ffeb3b', color: '#000', border: '#fbc02d' });
+    ensureAnalyzerGlobals();
 
-      // Validate size (100MB)
-      const maxSize = 100 * 1024 * 1024;
-      if (file.size > maxSize) throw new Error(`File too large: ${(file.size / 1024 / 1024).toFixed(1)}MB (max 100MB).`);
+    try {
+      analyzeStatusBanner('🔄 Loading file…', 'info');
+
+      // size cap (optional)
+      const max = 100 * 1024 * 1024;
+      if (file.size > max) throw new Error(`File too large: ${(file.size/1024/1024).toFixed(1)}MB (max 100MB).`);
 
       const ctx = ensureAudioContext();
+      try { await resumeAudio(); } catch {}
 
-      setAnalysisStatus('🎵 DECODING AUDIO…', { bg: '#e1bee7', color: '#4a148c', border: '#6a1b9a' });
+      analyzeStatusBanner('🎵 Decoding audio…', 'warn');
 
-      // Safari sometimes needs user gesture; we already provide overlay, but try resume anyway
-      if (ctx.state === 'suspended') {
-        try { await ctx.resume(); } catch {}
-      }
+      const ab = await file.arrayBuffer();
+      if (cancelled) throw new Error('Analysis cancelled');
 
-      const arrayBuffer = await file.arrayBuffer();
-      if (analysisCancelled) throw new Error('Analysis cancelled');
+      const audioBuffer = await decodeAudioBuffer(ab, ctx);
+      if (cancelled) throw new Error('Analysis cancelled');
 
-      const audioBuffer = await decodeAudioBuffer(arrayBuffer, file, ctx);
-      if (analysisCancelled) throw new Error('Analysis cancelled');
-
-      setAnalysisStatus('📊 STARTING ANALYSIS…', { bg: '#c8e6c9', color: '#1b5e20', border: '#4caf50' });
-
-      // Create playback player
+      // Create a player
       const audioUrl = URL.createObjectURL(file);
       const audioPlayer = document.createElement('audio');
       audioPlayer.controls = true;
       audioPlayer.src = audioUrl;
       audioPlayer.style.width = '100%';
-      audioPlayer.style.marginBottom = '20px';
 
-      // If you have a dedicated slot, put it there; otherwise insert under status banner
-      const status = ensureAnalysisStatus();
-      if (status && !$('#analysis-audio-player')) {
-        const wrap = document.createElement('div');
-        wrap.id = 'analysis-audio-player';
-        wrap.style.cssText = 'margin: 0 0 14px; padding: 12px; background: #e3f2fd; border-radius: 10px; border-left: 4px solid #2196f3;';
-        wrap.innerHTML = '<h4 style="margin: 0 0 8px; color:#1565c0;">🔊 Audio Playback</h4>';
-        wrap.appendChild(audioPlayer);
-        status.insertAdjacentElement('afterend', wrap);
+      // Place player in a stable container (do not duplicate)
+      let playerWrap = $('#analysis-audio-player');
+      if (!playerWrap) {
+        playerWrap = document.createElement('div');
+        playerWrap.id = 'analysis-audio-player';
+        playerWrap.style.cssText = 'margin:0 0 14px;padding:12px;background:#e3f2fd;border-radius:10px;border-left:4px solid #2196f3;';
+        playerWrap.innerHTML = '<h4 style="margin:0 0 8px;color:#1565c0;">🔊 Audio Playback</h4>';
+        const status = $('#analysis-status');
+        (status || results).insertAdjacentElement('afterend', playerWrap);
+      } else {
+        // clear old audio element
+        playerWrap.querySelectorAll('audio').forEach(a => a.remove());
       }
+      playerWrap.appendChild(audioPlayer);
 
-      // Call your existing analysis function (must NOT wipe DOM)
+      // Your analyzer MUST exist
       if (typeof window.analyzeAudioFile !== 'function') {
-        throw new Error('analyzeAudioFile() not found. Make sure your analyzer code is loaded.');
+        throw new Error('analyzeAudioFile() not found. Check that audioAnalyzer.js / analyzer code is loaded before index.js.');
       }
 
+      analyzeStatusBanner('📊 Analyzing…', 'warn');
       await window.analyzeAudioFile(audioBuffer, file.name, audioPlayer);
 
-      setAnalysisStatus('✅ Analysis complete.', { bg: '#e8f5e9', color: '#1b5e20', border: '#4caf50' });
+      analyzeStatusBanner('✅ Analysis complete.', 'ok');
       hide(cancelBtn);
     } catch (err) {
       console.error(err);
       hide(cancelBtn);
+      analyzeStatusBanner(`❌ ${err.message}`, 'error');
 
-      // Friendly error message in status + leave charts/buttons intact
-      setAnalysisStatus(`❌ ${err.message}`, { bg: '#ffebee', color: '#b71c1c', border: '#f44336' });
-
-      // Optional tips block (no DOM wipe, just append/update)
+      // Tips block (non-destructive)
       let tips = $('#analysis-error-tips');
       if (!tips) {
         tips = document.createElement('div');
         tips.id = 'analysis-error-tips';
-        tips.style.cssText = 'margin-top: 12px; padding: 12px; border-radius: 10px; background:#fff; border: 1px solid #f5c2c2;';
+        tips.style.cssText = 'margin-top:10px;padding:12px;border-radius:10px;background:#fff;border:1px solid #f5c2c2;';
         $('#analysis-status')?.insertAdjacentElement('afterend', tips);
       }
-
       tips.innerHTML = `
-        <div style="font-weight:700; color:#b71c1c; margin-bottom:6px;">Supported Formats & Fixes</div>
-        <ul style="margin: 0; padding-left: 18px; line-height: 1.6; color:#333;">
+        <div style="font-weight:700;color:#b71c1c;margin-bottom:6px;">Supported formats & quick fixes</div>
+        <ul style="margin:0;padding-left:18px;line-height:1.6;color:#333;">
           <li><b>Best:</b> WAV, OGG, FLAC</li>
-          <li><b>Limited:</b> MP3/M4A (depends on browser)</li>
-          <li>Try exporting as <b>PCM 16-bit WAV</b></li>
+          <li><b>Limited:</b> MP3/M4A (browser dependent)</li>
+          <li>Export as <b>PCM 16-bit WAV</b> and retry</li>
           <li>Try a shorter clip (under 5 minutes)</li>
         </ul>
       `;
@@ -378,31 +389,33 @@ function initializeAnalyzer() {
   });
 }
 
-/* =========================
-   Download buttons (delegation)
-   Expects global chart instances + currentAnalysisData
-========================= */
-function setupDownloadButtonsOnce() {
-  if (setupDownloadButtonsOnce._done) return;
-  setupDownloadButtonsOnce._done = true;
+/* ---------------------------
+   Download buttons
+   (Only delegates; your existing functions do the work.)
+--------------------------- */
+function initializeDownloadsOnce() {
+  if (initializeDownloadsOnce._done) return;
+  initializeDownloadsOnce._done = true;
 
   on(document, 'click', (e) => {
     const id = e.target?.id;
     if (!id) return;
 
-    if (id === 'download-pitch-chart') return window.downloadChart?.(window.pitchChart, 'pitch-analysis.png');
-    if (id === 'download-rhythm-chart') return window.downloadChart?.(window.rhythmChart, 'rhythm-analysis.png');
-    if (id === 'download-spectral-chart') return window.downloadChart?.(window.spectralChart, 'spectral-analysis.png');
-    if (id === 'download-analysis-data') return window.downloadJSON?.(window.currentAnalysisData, 'music-analysis-data.json');
-    if (id === 'download-full-report') return window.generateAnalysisReport?.();
+    if (id === 'download-pitch-chart')   return safeCall(window.downloadChart, window.pitchChart, 'pitch-analysis.png');
+    if (id === 'download-rhythm-chart')  return safeCall(window.downloadChart, window.rhythmChart, 'rhythm-analysis.png');
+    if (id === 'download-spectral-chart')return safeCall(window.downloadChart, window.spectralChart, 'spectral-analysis.png');
+    if (id === 'download-analysis-data') return safeCall(window.downloadJSON, window.currentAnalysisData, 'music-analysis-data.json');
+    if (id === 'download-full-report')   return safeCall(window.generateAnalysisReport);
   });
 }
 
-/* =========================
+/* ---------------------------
    Boot
-========================= */
+   IMPORTANT: We only “call if exists”.
+   That means your existing app logic stays the boss.
+--------------------------- */
 function boot() {
-  // Core UI
+  // UI
   initializeTabs();
   initializeAccessibilityMenu();
   initializeDarkMode();
@@ -411,19 +424,23 @@ function boot() {
 
   // Features
   initializeWorldMapSafe();
-  initializeAnalyzer();
-  setupDownloadButtonsOnce();
+  initializeAnalyzeUpload();
+  initializeDownloadsOnce();
 
-  // Optional: call your other initializers if present
-  if (typeof window.initializeGames === 'function') window.initializeGames();
-  if (typeof window.initializeRecorder === 'function') window.initializeRecorder();
-  if (typeof window.initializeLivePitch === 'function') window.initializeLivePitch();
-  if (typeof window.initializeComposer === 'function') window.initializeComposer();
-  if (typeof window.initializeLessonPlans === 'function') window.initializeLessonPlans();
-  if (typeof window.initializeProgress === 'function') window.initializeProgress();
+  // Your modules (only if they exist)
+  safeCall(window.initializeGames);
+  safeCall(window.initializeRecorder);
+  safeCall(window.initializeLivePitch);
+  safeCall(window.initializeComposer);
+  safeCall(window.initializeLessonPlans);
+  safeCall(window.initializeProgress);
 
-  // Glossary if you use the new IDs
-  if (typeof window.displayGlossary === 'function') window.displayGlossary();
+  // If you have a glossary renderer that expects specific IDs,
+  // it should handle missing targets internally.
+  safeCall(window.displayGlossary);
+
+  // Final sanity: expose analyzer globals once more after other scripts run
+  ensureAnalyzerGlobals();
 }
 
 document.addEventListener('DOMContentLoaded', boot);
