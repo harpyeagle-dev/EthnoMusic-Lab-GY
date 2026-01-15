@@ -9,7 +9,8 @@
       extendedFeatures.js, games.js, genreMLModel.js, indigenousTrainer.js, mlTrainer.js,
       trainerUI.js, etc.
 */
-
+// Import CSS to be extracted by MiniCssExtractPlugin
+import './styles.css';
 'use strict';
 
 /* ---------------------------
