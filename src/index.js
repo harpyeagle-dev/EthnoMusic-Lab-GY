@@ -1,4 +1,4 @@
-/* src/index.js — World EthnoMusic Lab (RESTORE + FIXES, minimal & compatible)
+/* src/index.js — EthnoMusic Lab GY (RESTORE + FIXES, minimal & compatible)
    Goals:
    ✅ Stop 404-driven “nothing works” (correct entry expectations)
    ✅ Do NOT rewrite your app logic — just bootstrap safely

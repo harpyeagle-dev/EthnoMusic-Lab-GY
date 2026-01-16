@@ -43,7 +43,7 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       template: './src/index.html',
-      title: 'World EthnoMusic Lab'
+      title: 'EthnoMusic Lab GY'
     }),
     new CopyWebpackPlugin({
       patterns: [
