@@ -1934,9 +1934,27 @@ export class AudioAnalyzer {
 
 // Global function for analyzing audio files
 export async function analyzeAudioFile(audioBuffer, fileName, audioPlayer) {
-    const analyzer = new AudioAnalyzer();
-    await analyzer.initialize();
-    return analyzer.analyze(audioBuffer, fileName, audioPlayer);
+    try {
+        const analyzer = new AudioAnalyzer();
+        await analyzer.initialize();
+        
+        // Extract features from the buffer
+        const basicFeatures = analyzer.extractBasicFeatures(audioBuffer);
+        const pitchData = analyzer.detectPitchEssentia(audioBuffer);
+        const rhythmData = analyzer.analyzeRhythmEssentia(audioBuffer);
+        
+        // Return comprehensive analysis
+        return {
+            fileName: fileName,
+            features: basicFeatures,
+            pitch: pitchData,
+            rhythm: rhythmData,
+            timestamp: new Date().toISOString()
+        };
+    } catch (error) {
+        console.error('Error analyzing audio:', error);
+        throw error;
+    }
 }
 
 // Make it globally available

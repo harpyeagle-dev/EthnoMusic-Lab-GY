@@ -63,10 +63,10 @@ class GenreMLClassifier {
             console.debug('Current pathname:', window.location.pathname);
 
             // Attempt to load TF.js graph model if present in /models
-            // Expected path: /models/genre_discogs400/model.json (handled via webpack publicPath)
+            // Expected path: /models/genre_discogs400/genre_discogs400-discogs-maest-30s-pw-1.json (handled via webpack publicPath)
             // Place downloaded Essentia TFJS bundle in public/models/genre_discogs400
             try {
-                const tfModelUrl = this.resolveAssetPath('models/genre_discogs400/model.json');
+                const tfModelUrl = this.resolveAssetPath('models/genre_discogs400/genre_discogs400-discogs-maest-30s-pw-1.json');
                 console.debug('[TF.js] Attempting to load from:', tfModelUrl);
                 this.tfModel = await tf.loadGraphModel(tfModelUrl);
                 this.inputSpec = this.getInputSpec();

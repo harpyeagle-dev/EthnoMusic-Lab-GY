@@ -305,30 +305,99 @@ export function initializeWorldMap() {
             maxZoom: 19
         }).addTo(map);
 
-        // Add cultural music markers
-        const markers = [
-            { lat: 0, lng: 32, name: 'Uganda', culture: 'East African' },
-            { lat: -25, lng: 133, name: 'Australia', culture: 'Aboriginal' },
-            { lat: 35, lng: 139, name: 'Japan', culture: 'Traditional Japanese' },
-            { lat: 20, lng: 77, name: 'India', culture: 'Indian Classical' },
-            { lat: 51, lng: -0.1, name: 'UK', culture: 'Celtic' },
-            { lat: 40, lng: -74, name: 'USA', culture: 'American Blues' },
-            { lat: -34, lng: -58, name: 'Argentina', culture: 'Tango' },
-            { lat: 48, lng: 2, name: 'France', culture: 'French Jazz' }
+        // World music culture locations with comprehensive data
+        const musicCultures = [
+            // Africa
+            { lat: 0, lng: 32, name: 'Uganda', culture: 'East African Music', color: '#FF6B6B' },
+            { lat: -25, lng: 25, name: 'South Africa', culture: 'Mbaqanga & Kwaito', color: '#FF6B6B' },
+            { lat: 8, lng: -15, name: 'West Africa', culture: 'Griots & Djembe', color: '#FF6B6B' },
+            { lat: 0, lng: 15, name: 'Congo', culture: 'Rumba & Soukous', color: '#FF6B6B' },
+            
+            // Middle East & Central Asia
+            { lat: 33, lng: 44, name: 'Iraq', culture: 'Maqam Music', color: '#FFA500' },
+            { lat: 35, lng: 69, name: 'Afghanistan', culture: 'Dari Music', color: '#FFA500' },
+            { lat: 41, lng: 74, name: 'Tajikistan', culture: 'Central Asian Music', color: '#FFA500' },
+            
+            // South Asia
+            { lat: 20, lng: 77, name: 'India', culture: 'Classical Raga', color: '#FFD700' },
+            { lat: 27, lng: 85, name: 'Nepal', culture: 'Nepali Folk', color: '#FFD700' },
+            { lat: 6, lng: 81, name: 'Sri Lanka', culture: 'Sinhala Tradition', color: '#FFD700' },
+            
+            // Southeast Asia
+            { lat: 13, lng: 104, name: 'Cambodia', culture: 'Khmer Classical', color: '#90EE90' },
+            { lat: 16, lng: 100, name: 'Thailand', culture: 'Gamelan & Piphat', color: '#90EE90' },
+            { lat: -8, lng: 113, name: 'Indonesia', culture: 'Gamelan & Wayang', color: '#90EE90' },
+            
+            // East Asia
+            { lat: 35, lng: 139, name: 'Japan', culture: 'Gagaku & Shamisen', color: '#87CEEB' },
+            { lat: 39, lng: 116, name: 'China', culture: 'Traditional Pipa', color: '#87CEEB' },
+            { lat: 37, lng: 127, name: 'Korea', culture: 'Pansori & Gayageum', color: '#87CEEB' },
+            
+            // Europe
+            { lat: 51, lng: -0.1, name: 'UK', culture: 'Celtic & Folk', color: '#DDA0DD' },
+            { lat: 48, lng: 2, name: 'France', culture: 'Breton Music', color: '#DDA0DD' },
+            { lat: 52, lng: 13, name: 'Germany', culture: 'Traditional Folk', color: '#DDA0DD' },
+            { lat: 41, lng: 12, name: 'Italy', culture: 'Tarantella & Opera', color: '#DDA0DD' },
+            { lat: 40, lng: 21, name: 'Greece', culture: 'Rebetiko & Rembetiki', color: '#DDA0DD' },
+            
+            // Americas
+            { lat: 40, lng: -74, name: 'USA', culture: 'Blues & Jazz', color: '#FF1493' },
+            { lat: 19, lng: -87, name: 'Caribbean', culture: 'Reggae & Calypso', color: '#FF1493' },
+            { lat: -34, lng: -58, name: 'Argentina', culture: 'Tango', color: '#FF1493' },
+            { lat: -23, lng: -43, name: 'Brazil', culture: 'Samba & Bossa Nova', color: '#FF1493' },
+            { lat: 10, lng: -75, name: 'Colombia', culture: 'Cumbia & Vallenato', color: '#FF1493' },
+            
+            // Oceania
+            { lat: -25, lng: 133, name: 'Australia', culture: 'Aboriginal Didgeridoo', color: '#20B2AA' },
+            { lat: -17, lng: 168, name: 'Vanuatu', culture: 'Oceanic Traditions', color: '#20B2AA' }
         ];
 
-        markers.forEach(marker => {
+        // Add markers for each culture
+        musicCultures.forEach(marker => {
+            const popupContent = `
+                <div style="font-weight: bold;">${marker.name}</div>
+                <div style="font-size: 0.9em; color: #666;">${marker.culture}</div>
+            `;
+            
             L.circleMarker([marker.lat, marker.lng], {
-                radius: 8,
-                fillColor: '#667eea',
+                radius: 7,
+                fillColor: marker.color,
                 color: '#333',
                 weight: 2,
                 opacity: 1,
                 fillOpacity: 0.8
             })
-            .bindPopup(`<strong>${marker.name}</strong><br>${marker.culture}`)
+            .bindPopup(popupContent)
             .addTo(map);
         });
+
+        // Add legend
+        const legend = L.control({ position: 'bottomright' });
+        legend.onAdd = function() {
+            const div = L.DomUtil.create('div', 'info legend');
+            div.style.backgroundColor = 'white';
+            div.style.padding = '10px';
+            div.style.borderRadius = '5px';
+            div.style.boxShadow = '0 0 15px rgba(0,0,0,0.2)';
+            
+            const regions = [
+                { color: '#FF6B6B', label: 'Africa' },
+                { color: '#FFA500', label: 'Middle East/Central Asia' },
+                { color: '#FFD700', label: 'South Asia' },
+                { color: '#90EE90', label: 'Southeast Asia' },
+                { color: '#87CEEB', label: 'East Asia' },
+                { color: '#DDA0DD', label: 'Europe' },
+                { color: '#FF1493', label: 'Americas' },
+                { color: '#20B2AA', label: 'Oceania' }
+            ];
+            
+            regions.forEach(region => {
+                div.innerHTML += `<div style="margin: 5px 0;"><span style="display:inline-block; width:15px; height:15px; background-color:${region.color}; border-radius:50%; margin-right:8px;"></span>${region.label}</div>`;
+            });
+            
+            return div;
+        };
+        legend.addTo(map);
 
         // Handle map resize when tab becomes visible
         window.__WORLD_MAP = map;
