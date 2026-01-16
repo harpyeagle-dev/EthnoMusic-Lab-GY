@@ -283,3 +283,62 @@ export const musicalGlossary = {
     'Microtone': 'An interval smaller than a semitone',
     'Overtone': 'Higher frequencies that sound along with the fundamental pitch'
 };
+
+// World Map Initialization
+export function initializeWorldMap() {
+    const mapContainer = document.getElementById('world-map');
+    if (!mapContainer) return null;
+
+    try {
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+            console.warn('Leaflet library not loaded');
+            return null;
+        }
+
+        // Initialize map centered on Africa (center of world music diversity)
+        const map = L.map('world-map').setView([0, 20], 3);
+
+        // Add tile layer
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 19
+        }).addTo(map);
+
+        // Add cultural music markers
+        const markers = [
+            { lat: 0, lng: 32, name: 'Uganda', culture: 'East African' },
+            { lat: -25, lng: 133, name: 'Australia', culture: 'Aboriginal' },
+            { lat: 35, lng: 139, name: 'Japan', culture: 'Traditional Japanese' },
+            { lat: 20, lng: 77, name: 'India', culture: 'Indian Classical' },
+            { lat: 51, lng: -0.1, name: 'UK', culture: 'Celtic' },
+            { lat: 40, lng: -74, name: 'USA', culture: 'American Blues' },
+            { lat: -34, lng: -58, name: 'Argentina', culture: 'Tango' },
+            { lat: 48, lng: 2, name: 'France', culture: 'French Jazz' }
+        ];
+
+        markers.forEach(marker => {
+            L.circleMarker([marker.lat, marker.lng], {
+                radius: 8,
+                fillColor: '#667eea',
+                color: '#333',
+                weight: 2,
+                opacity: 1,
+                fillOpacity: 0.8
+            })
+            .bindPopup(`<strong>${marker.name}</strong><br>${marker.culture}`)
+            .addTo(map);
+        });
+
+        // Handle map resize when tab becomes visible
+        window.__WORLD_MAP = map;
+        return map;
+    } catch (e) {
+        console.error('Error initializing map:', e);
+        mapContainer.innerHTML = '<p style="padding:14px;background:#ffebee;border-left:4px solid #f44336;border-radius:8px;color:#b71c1c;">Map failed to load: ' + e.message + '</p>';
+        return null;
+    }
+}
+
+// Make it globally available
+window.initializeWorldMap = initializeWorldMap;

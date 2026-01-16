@@ -11,6 +11,10 @@
 */
 // Import CSS to be extracted by MiniCssExtractPlugin
 import './styles.css';
+
+// Import modules to ensure they register their global functions
+import { initializeWorldMap } from './advancedFeatures.js';
+
 'use strict';
 
 /* ---------------------------
