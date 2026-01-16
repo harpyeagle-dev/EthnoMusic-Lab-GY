@@ -48,6 +48,42 @@ body {
     font-weight: 300;
 }
 
+/* Page Navigation */
+.page-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    padding: 12px 24px;
+    background: white;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    font-size: 0.95em;
+}
+
+.nav-link:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.nav-link.active {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
 .header-controls {
     display: flex;
     gap: 10px;

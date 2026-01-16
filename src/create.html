@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Music - EthnoMusic Lab GY</title>
+  <meta name="theme-color" content="#667eea" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>🎵 EthnoMusic Lab GY</h1>
+      <nav>
+        <a href="index.html" class="nav-link">Explore</a>
+        <a href="analyze.html" class="nav-link">Analyze</a>
+        <a href="learn.html" class="nav-link">Learn & Play</a>
+        <a href="create.html" class="nav-link active">Create Music</a>
+        <a href="educators.html" class="nav-link">For Educators</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h2>🎼 Create Your Own Music</h2>
+    
+    <div class="create-sections">
+      <section class="create-section">
+        <h3>🎤 Record Your Music</h3>
+        <p>Record your own voice or instrument and analyze it</p>
+        <button id="record-btn" class="btn-primary">🎤 Start Recording</button>
+        <button id="stop-record-btn" class="btn-secondary" disabled>⏹️ Stop Recording</button>
+        <div id="recording-status"></div>
+      </section>
+      
+      <section class="create-section">
+        <h3>🎹 Music Composer</h3>
+        <p>Create melodies using scales from different cultures</p>
+        <div class="composer-controls">
+          <select id="culture1-select" class="select-dropdown">
+            <option value="">Select first culture...</option>
+          </select>
+          <select id="culture2-select" class="select-dropdown">
+            <option value="">Select second culture...</option>
+          </select>
+          <button id="mix-scales" class="btn-primary">Mix Scales</button>
+        </div>
+        <canvas id="composition-canvas" width="800" height="400"></canvas>
+      </section>
+      
+      <section class="create-section">
+        <h3>🔁 Loop Station</h3>
+        <p>Layer multiple recordings to create complex rhythms</p>
+        <button id="record-loop" class="btn-primary">⏺️ Record Loop</button>
+        <button id="play-loops" class="btn-primary">▶️ Play All</button>
+        <button id="clear-loops" class="btn-secondary">Clear All</button>
+        <div id="loop-display"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Created with ❤️ by <strong>Rohan R. Sagar</strong> | <a href="https://www.digitalheritagegy.com" target="_blank">Digital Heritage GY</a></p>
+  </footer>
+</body>
+</html>

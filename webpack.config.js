@@ -43,7 +43,33 @@ module.exports = {
     }),
     new HtmlWebpackPlugin({
       template: './src/index.html',
+      filename: 'index.html',
       title: 'EthnoMusic Lab GY'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/explore.html',
+      filename: 'explore.html',
+      title: 'Explore Cultures - EthnoMusic Lab GY'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/analyze.html',
+      filename: 'analyze.html',
+      title: 'Analyze Music - EthnoMusic Lab GY'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/learn.html',
+      filename: 'learn.html',
+      title: 'Learn & Play - EthnoMusic Lab GY'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/create.html',
+      filename: 'create.html',
+      title: 'Create Music - EthnoMusic Lab GY'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/educators.html',
+      filename: 'educators.html',
+      title: 'For Educators - EthnoMusic Lab GY'
     }),
     new CopyWebpackPlugin({
       patterns: [

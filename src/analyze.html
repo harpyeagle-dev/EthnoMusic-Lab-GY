@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analyze Music - EthnoMusic Lab GY</title>
+  <meta name="theme-color" content="#667eea" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>🎵 EthnoMusic Lab GY</h1>
+      <nav>
+        <a href="index.html" class="nav-link">Explore</a>
+        <a href="analyze.html" class="nav-link active">Analyze</a>
+        <a href="learn.html" class="nav-link">Learn & Play</a>
+        <a href="create.html" class="nav-link">Create Music</a>
+        <a href="educators.html" class="nav-link">For Educators</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h2>Analyze Musical Patterns</h2>
+    
+    <div class="info-banner">
+      <p>🌐 Interested in digital heritage and cultural analysis? <a href="https://www.digitalheritagegy.com" target="_blank">Visit Digital Heritage GY →</a></p>
+    </div>
+    
+    <div class="upload-section">
+      <input type="file" id="file-input" accept=".wav,.ogg,.flac,.mp3,.m4a,.weba,.webm"/>
+      <label for="file-input" class="btn-primary">📁 Upload Audio File</label>
+      <p class="help-text">Upload audio (WAV, OGG, FLAC recommended • MP3/M4A have limited support)</p>
+      <button id="cancel-analysis" class="btn-secondary" style="display:none;">✖️ Cancel Analysis</button>
+    </div>
+    
+    <div id="analysis-results" style="display:none;">
+      <div class="analysis-grid">
+        <div class="analysis-card">
+          <h3>Pitch Analysis</h3>
+          <canvas id="pitch-chart" width="400" height="300"></canvas>
+          <div id="pitch-info"></div>
+        </div>
+        <div class="analysis-card">
+          <h3>Rhythm Analysis</h3>
+          <canvas id="rhythm-chart" width="400" height="300"></canvas>
+          <div id="rhythm-info"></div>
+        </div>
+        <div class="analysis-card">
+          <h3>Spectral Features</h3>
+          <canvas id="spectral-chart" width="400" height="300"></canvas>
+          <div id="spectral-info"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Created with ❤️ by <strong>Rohan R. Sagar</strong> | <a href="https://www.digitalheritagegy.com" target="_blank">Digital Heritage GY</a></p>
+  </footer>
+</body>
+</html>

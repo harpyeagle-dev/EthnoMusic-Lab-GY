@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>For Educators - EthnoMusic Lab GY</title>
+  <meta name="theme-color" content="#667eea" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1>🎵 EthnoMusic Lab GY</h1>
+      <nav>
+        <a href="index.html" class="nav-link">Explore</a>
+        <a href="analyze.html" class="nav-link">Analyze</a>
+        <a href="learn.html" class="nav-link">Learn & Play</a>
+        <a href="create.html" class="nav-link">Create Music</a>
+        <a href="educators.html" class="nav-link active">For Educators</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <h2>👨‍🏫 Resources for Educators</h2>
+    
+    <div class="educator-sections">
+      <section class="educator-section">
+        <h3>📚 Lesson Plans</h3>
+        <p>Ready-to-use lesson plans aligned with educational standards</p>
+        <div id="lesson-plans-container"></div>
+      </section>
+      
+      <section class="educator-section">
+        <h3>📊 Teacher Dashboard</h3>
+        <p>Track student activity and progress (stored locally)</p>
+        <div class="dashboard-controls">
+          <label>
+            <strong>Class Name:</strong>
+            <input id="class-name-input" placeholder="e.g., Music 101 - Period 2" class="input-field"/>
+          </label>
+          <label>
+            <strong>Number of Students:</strong>
+            <input type="number" id="student-count-input" min="1" max="50" value="25" class="input-field"/>
+          </label>
+          <button id="start-session-btn" class="btn-primary">Start Session</button>
+        </div>
+        <div id="session-stats" style="display:none;">
+          <h4>Session Activity</h4>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value" id="tracks-analyzed-count">0</div>
+              <div class="stat-label">Tracks Analyzed</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="games-played-count">0</div>
+              <div class="stat-label">Games Played</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value" id="quizzes-taken-count">0</div>
+              <div class="stat-label">Quizzes Taken</div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
+      <section class="educator-section">
+        <h3>🤖 ML Trainer</h3>
+        <p>Train custom machine learning models for music classification</p>
+        <a href="ml-trainer.html" class="btn-primary">Open ML Trainer</a>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Created with ❤️ by <strong>Rohan R. Sagar</strong> | <a href="https://www.digitalheritagegy.com" target="_blank">Digital Heritage GY</a></p>
+  </footer>
+</body>
+</html>
