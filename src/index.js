@@ -16,6 +16,10 @@ import './styles.css';
 import { initializeWorldMap } from './advancedFeatures.js';
 import { analyzeAudioFile } from './audioAnalyzer.js';
 
+// Ensure functions are available on window immediately after import
+window.initializeWorldMap = window.initializeWorldMap || initializeWorldMap;
+window.analyzeAudioFile = window.analyzeAudioFile || analyzeAudioFile;
+
 'use strict';
 
 /* ---------------------------
