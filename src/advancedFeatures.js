@@ -433,6 +433,40 @@ export function displayGlossary() {
     console.log('Musical glossary displayed');
 }
 
+// Display Cultures Function
+export async function displayCultures() {
+    // Import culture data
+    const { getAllExpandedCultures } = await import('./expandedCultures.js');
+    const cultures = getAllExpandedCultures();
+    
+    // Update count
+    const countEl = document.getElementById('culture-count');
+    if (countEl) countEl.textContent = cultures.length;
+    
+    // Display culture cards
+    const gridEl = document.getElementById('culture-grid');
+    if (!gridEl) return;
+    
+    gridEl.innerHTML = '';
+    gridEl.className = 'culture-grid';
+    
+    cultures.forEach(culture => {
+        const card = document.createElement('div');
+        card.className = 'culture-card';
+        card.innerHTML = `
+            <div class="culture-emoji">${culture.emoji}</div>
+            <h3>${culture.name}</h3>
+            <p class="culture-region">${culture.region}</p>
+            <p class="culture-description">${culture.description}</p>
+            <button class="btn-primary" data-culture-id="${culture.id}">Learn More</button>
+        `;
+        gridEl.appendChild(card);
+    });
+    
+    console.log(`Displayed ${cultures.length} cultures`);
+}
+
 // Make functions globally available
 window.initializeWorldMap = initializeWorldMap;
 window.displayGlossary = displayGlossary;
+window.displayCultures = displayCultures;

@@ -13,12 +13,13 @@
 import './styles.css';
 
 // Import modules to ensure they register their global functions
-import { initializeWorldMap, displayGlossary } from './advancedFeatures.js';
+import { initializeWorldMap, displayGlossary, displayCultures } from './advancedFeatures.js';
 import { analyzeAudioFile } from './audioAnalyzer.js';
 
 // Ensure functions are available on window immediately after import
 window.initializeWorldMap = window.initializeWorldMap || initializeWorldMap;
 window.displayGlossary = window.displayGlossary || displayGlossary;
+window.displayCultures = window.displayCultures || displayCultures;
 window.analyzeAudioFile = window.analyzeAudioFile || analyzeAudioFile;
 
 'use strict';
@@ -446,9 +447,9 @@ function boot() {
   safeCall(window.initializeLessonPlans);
   safeCall(window.initializeProgress);
 
-  // If you have a glossary renderer that expects specific IDs,
-  // it should handle missing targets internally.
+  // Display content
   safeCall(window.displayGlossary);
+  safeCall(window.displayCultures);
 
   // Final sanity: expose analyzer globals once more after other scripts run
   ensureAnalyzerGlobals();

@@ -1946,10 +1946,10 @@ export async function analyzeAudioFile(audioBuffer, fileName, audioPlayer) {
         const channelData = audioBuffer.getChannelData(0);
         const sampleRate = audioBuffer.sampleRate;
         
-        // Basic analysis
+        // Basic analysis without causing stack overflow
         const duration = audioBuffer.duration;
         const rms = calculateRMS(channelData);
-        const peakAmplitude = Math.max(...Array.from(channelData).map(Math.abs));
+        const peakAmplitude = findPeakAmplitude(channelData);
         
         const result = {
             fileName: fileName,
@@ -1976,6 +1976,16 @@ function calculateRMS(channelData) {
         sum += channelData[i] * channelData[i];
     }
     return Math.sqrt(sum / channelData.length);
+}
+
+// Helper function to find peak amplitude without stack overflow
+function findPeakAmplitude(channelData) {
+    let peak = 0;
+    for (let i = 0; i < channelData.length; i++) {
+        const abs = Math.abs(channelData[i]);
+        if (abs > peak) peak = abs;
+    }
+    return peak;
 }
 
 // Make it globally available
