@@ -4,6 +4,7 @@ export const expandedCulturesData = [
         name: 'West African',
         emoji: '🌍',
         region: 'West Africa',
+        coordinates: { lat: 9.0, lng: -1.5 }, // Ghana/Mali region
         description: 'Rich polyrhythmic traditions featuring djembe, kora, and talking drums. Complex interlocking rhythms and call-and-response patterns.',
         characteristics: {
             rhythm: 'Polyrhythmic, complex cross-rhythms',
@@ -24,6 +25,7 @@ export const expandedCulturesData = [
         name: 'Indian Classical',
         emoji: '🇮🇳',
         region: 'South Asia',
+        coordinates: { lat: 20.5937, lng: 78.9629 }, // India center
         description: 'Ancient tradition built on ragas (melodic frameworks) and talas (rhythmic cycles). Features sitar, tabla, and sophisticated improvisation.',
         characteristics: {
             rhythm: 'Cyclic patterns (talas) from 3 to 16+ beats',
@@ -44,6 +46,7 @@ export const expandedCulturesData = [
         name: 'Chinese Traditional',
         emoji: '🇨🇳',
         region: 'East Asia',
+        coordinates: { lat: 35.8617, lng: 104.1954 }, // China center
         description: 'Ancient musical tradition featuring pentatonic scales, silk and bamboo instruments, and philosophical connections to nature.',
         characteristics: {
             rhythm: 'Free-flowing, often following natural speech patterns',
@@ -64,6 +67,7 @@ export const expandedCulturesData = [
         name: 'Middle Eastern',
         emoji: '🏜️',
         region: 'Middle East',
+        coordinates: { lat: 29.3117, lng: 47.4818 }, // Kuwait/Middle East center
         description: 'Sophisticated modal system (maqamat) with microtonal intervals, featuring oud, qanun, and complex ornamental melodies.',
         characteristics: {
             rhythm: 'Complex meters including 7/8, 9/8, 10/8',
@@ -84,6 +88,7 @@ export const expandedCulturesData = [
         name: 'Latin American',
         emoji: '🎺',
         region: 'Latin America',
+        coordinates: { lat: -8.7832, lng: -55.4915 }, // Brazil/Latin America center
         description: 'Vibrant fusion of Indigenous, African, and European traditions featuring complex syncopation, brass, and percussion.',
         characteristics: {
             rhythm: 'Syncopated patterns, clave rhythms',
@@ -104,6 +109,7 @@ export const expandedCulturesData = [
         name: 'Aboriginal Australian',
         emoji: '🦘',
         region: 'Australia',
+        coordinates: { lat: -25.2744, lng: 133.7751 }, // Australia center
         description: 'One of the world\'s oldest musical traditions featuring the didgeridoo, clapsticks, and connection to Dreamtime stories.',
         characteristics: {
             rhythm: 'Steady pulse with complex variations',
@@ -124,6 +130,7 @@ export const expandedCulturesData = [
         name: 'European Folk',
         emoji: '🎻',
         region: 'Europe',
+        coordinates: { lat: 53.4129, lng: -8.2439 }, // Ireland
         description: 'Diverse regional traditions featuring modal melodies, dance rhythms, and instruments like fiddle, accordion, and bagpipes.',
         characteristics: {
             rhythm: 'Dance rhythms (waltz, jig, reel, polka)',
@@ -144,6 +151,7 @@ export const expandedCulturesData = [
         name: 'Japanese Traditional',
         emoji: '🎌',
         region: 'East Asia',
+        coordinates: { lat: 36.2048, lng: 138.2529 }, // Japan center
         description: 'Refined aesthetic featuring ma (silence/space), pentatonic scales, and instruments like shakuhachi, koto, and shamisen.',
         characteristics: {
             rhythm: 'Flexible, emphasizing space and silence (ma)',
@@ -164,6 +172,7 @@ export const expandedCulturesData = [
         name: 'Mongolian Throat Singing',
         emoji: '🇲🇳',
         region: 'Central Asia',
+        coordinates: { lat: 46.8625, lng: 103.8467 }, // Mongolia center
         description: 'Unique vocal technique producing multiple pitches simultaneously, imitating sounds of nature and animals.',
         characteristics: {
             rhythm: 'Free and flowing, often following natural patterns',
@@ -184,6 +193,7 @@ export const expandedCulturesData = [
         name: 'Indonesian Gamelan',
         emoji: '🇮🇩',
         region: 'Southeast Asia',
+        coordinates: { lat: -7.7956, lng: 110.3695 }, // Java, Indonesia
         description: 'Ensemble of bronze metallophones, gongs, and drums creating shimmering, interlocking textures.',
         characteristics: {
             rhythm: 'Interlocking patterns (kotekan), cyclical structures',
@@ -204,6 +214,7 @@ export const expandedCulturesData = [
         name: 'Flamenco',
         emoji: '💃',
         region: 'Spain',
+        coordinates: { lat: 37.3891, lng: -5.9845 }, // Seville, Andalusia
         description: 'Passionate Andalusian art form combining guitar, singing, dance, and hand-clapping with complex rhythms.',
         characteristics: {
             rhythm: 'Complex compás patterns in 12, 4, or 3 beats',
@@ -224,6 +235,7 @@ export const expandedCulturesData = [
         name: 'Andean Music',
         emoji: '🏔️',
         region: 'South America',
+        coordinates: { lat: -13.5319, lng: -71.9675 }, // Cusco, Peru
         description: 'Indigenous music of the Andes featuring panpipes, flutes, and charango with haunting melodies.',
         characteristics: {
             rhythm: 'Huayno rhythms, often in 2/4 or 6/8',
@@ -244,6 +256,7 @@ export const expandedCulturesData = [
         name: 'Bluegrass',
         emoji: '🪕',
         region: 'North America',
+        coordinates: { lat: 36.7783, lng: -83.2949 }, // Appalachia region (Eastern Kentucky/Tennessee border)
         description: 'American roots music featuring banjo, fiddle, and mandolin with fast picking and vocal harmonies.',
         characteristics: {
             rhythm: 'Fast 2/4 or 4/4, syncopated rolls',
@@ -264,6 +277,7 @@ export const expandedCulturesData = [
         name: 'Brazilian Samba',
         emoji: '🇧🇷',
         region: 'South America',
+        coordinates: { lat: -22.9068, lng: -43.1729 }, // Rio de Janeiro, Brazil
         description: 'Afro-Brazilian rhythmic tradition featuring syncopated percussion and dance-oriented grooves.',
         characteristics: {
             rhythm: 'Syncopated 2/4, partido-alto patterns',
@@ -284,6 +298,7 @@ export const expandedCulturesData = [
         name: 'Caribbean Steel Pan',
         emoji: '🏝️',
         region: 'Caribbean',
+        coordinates: { lat: 10.6918, lng: -61.2225 }, // Trinidad and Tobago
         description: 'Innovative percussion instruments made from oil drums, creating melodic and harmonic music.',
         characteristics: {
             rhythm: 'Calypso, soca rhythms in 4/4',
@@ -304,6 +319,7 @@ export const expandedCulturesData = [
         name: 'Korean Traditional',
         emoji: '🇰🇷',
         region: 'East Asia',
+        coordinates: { lat: 37.5665, lng: 126.9780 }, // Seoul, South Korea
         description: 'Ancient court and folk music featuring flexible rhythms, ornamentation, and unique vocal techniques.',
         characteristics: {
             rhythm: 'Jangdan patterns, often in 12/8 or 6/8',
@@ -324,6 +340,7 @@ export const expandedCulturesData = [
         name: 'Venezuelan Joropo',
         emoji: '🇻🇪',
         region: 'Venezuela',
+        coordinates: { lat: 8.5833, lng: -68.2667 }, // Los Llanos, Venezuela
         description: 'Venezuela\'s national music and dance, featuring harp, cuatro (4-string guitar), and maracas with fast-paced rhythms and African, Indigenous, and Spanish influences.',
         characteristics: {
             rhythm: '3/4 or 6/8 time signatures with syncopated patterns',
@@ -345,6 +362,7 @@ export const expandedCulturesData = [
         name: 'Caribbean Rhythms',
         emoji: '🏝️',
         region: 'Caribbean Islands',
+        coordinates: { lat: 18.1096, lng: -77.2975 }, // Jamaica
         description: 'Diverse rhythmic traditions including calypso, reggae, son, merengue, and zouk - blending African, European, and Indigenous influences across island nations.',
         characteristics: {
             rhythm: 'Syncopated, offbeat emphasis (ska, reggae), clave patterns (salsa, son)',
@@ -367,6 +385,7 @@ export const expandedCulturesData = [
         name: 'Guyanese',
         emoji: '🇬🇾',
         region: 'South America/Caribbean',
+        coordinates: { lat: 4.8604, lng: -58.9302 }, // Georgetown, Guyana
         description: 'Vibrant multicultural fusion blending Indo-Caribbean chutney, Afro-Guyanese rhythms, and Indigenous traditions featuring tassa drums, steel pan, and calypso influences.',
         characteristics: {
             rhythm: 'Syncopated chutney patterns, tassa drumming cycles, calypso beats',

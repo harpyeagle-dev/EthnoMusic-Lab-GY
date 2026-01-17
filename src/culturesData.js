@@ -4,6 +4,7 @@ export const culturesData = [
         name: 'West African',
         emoji: '🌍',
         region: 'West Africa',
+        coordinates: { lat: 9.0, lng: -1.5 }, // Ghana/Mali region
         description: 'Rich polyrhythmic traditions featuring djembe, kora, and talking drums. Complex interlocking rhythms and call-and-response patterns.',
         characteristics: {
             rhythm: 'Polyrhythmic, complex cross-rhythms',
@@ -22,6 +23,7 @@ export const culturesData = [
         name: 'Indian Classical',
         emoji: '🇮🇳',
         region: 'South Asia',
+        coordinates: { lat: 20.5937, lng: 78.9629 }, // India center
         description: 'Ancient tradition built on ragas (melodic frameworks) and talas (rhythmic cycles). Features sitar, tabla, and sophisticated improvisation.',
         characteristics: {
             rhythm: 'Cyclic patterns (talas) from 3 to 16+ beats',
@@ -40,6 +42,7 @@ export const culturesData = [
         name: 'Chinese Traditional',
         emoji: '🇨🇳',
         region: 'East Asia',
+        coordinates: { lat: 35.8617, lng: 104.1954 }, // China center
         description: 'Ancient musical tradition featuring pentatonic scales, silk and bamboo instruments, and philosophical connections to nature.',
         characteristics: {
             rhythm: 'Free-flowing, often following natural speech patterns',
@@ -58,6 +61,7 @@ export const culturesData = [
         name: 'Middle Eastern',
         emoji: '🏜️',
         region: 'Middle East',
+        coordinates: { lat: 29.3117, lng: 47.4818 }, // Kuwait/Middle East center
         description: 'Sophisticated modal system (maqamat) with microtonal intervals, featuring oud, qanun, and complex ornamental melodies.',
         characteristics: {
             rhythm: 'Complex meters including 7/8, 9/8, 10/8',
@@ -76,6 +80,7 @@ export const culturesData = [
         name: 'Latin American',
         emoji: '🎺',
         region: 'Latin America',
+        coordinates: { lat: -8.7832, lng: -55.4915 }, // Brazil/Latin America center
         description: 'Vibrant fusion of Indigenous, African, and European traditions featuring complex syncopation, brass, and percussion.',
         characteristics: {
             rhythm: 'Syncopated patterns, clave rhythms',
@@ -94,6 +99,7 @@ export const culturesData = [
         name: 'Aboriginal Australian',
         emoji: '🦘',
         region: 'Australia',
+        coordinates: { lat: -25.2744, lng: 133.7751 }, // Australia center
         description: 'One of the world\'s oldest musical traditions featuring the didgeridoo, clapsticks, and connection to Dreamtime stories.',
         characteristics: {
             rhythm: 'Steady pulse with complex variations',
@@ -112,6 +118,7 @@ export const culturesData = [
         name: 'European Folk',
         emoji: '🎻',
         region: 'Europe',
+        coordinates: { lat: 53.4129, lng: -8.2439 }, // Ireland
         description: 'Diverse regional traditions featuring modal melodies, dance rhythms, and instruments like fiddle, accordion, and bagpipes.',
         characteristics: {
             rhythm: 'Dance rhythms (waltz, jig, reel, polka)',
@@ -130,6 +137,7 @@ export const culturesData = [
         name: 'Japanese Traditional',
         emoji: '🎌',
         region: 'East Asia',
+        coordinates: { lat: 36.2048, lng: 138.2529 }, // Japan center
         description: 'Refined aesthetic featuring ma (silence/space), pentatonic scales, and instruments like shakuhachi, koto, and shamisen.',
         characteristics: {
             rhythm: 'Flexible, emphasizing space and silence (ma)',
@@ -148,6 +156,7 @@ export const culturesData = [
         name: 'Guyanese',
         emoji: '🇬🇾',
         region: 'South America/Caribbean',
+        coordinates: { lat: 4.8604, lng: -58.9302 }, // Georgetown, Guyana
         description: 'Vibrant multicultural fusion blending Indo-Caribbean chutney, Afro-Guyanese rhythms, and Indigenous traditions featuring tassa drums, steel pan, and calypso influences.',
         characteristics: {
             rhythm: 'Syncopated chutney patterns, tassa drumming cycles, calypso beats',

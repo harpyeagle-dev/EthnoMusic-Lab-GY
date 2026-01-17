@@ -285,7 +285,7 @@ export const musicalGlossary = {
 };
 
 // World Map Initialization
-export function initializeWorldMap() {
+export async function initializeWorldMap() {
     const mapContainer = document.getElementById('world-map');
     if (!mapContainer) return null;
 
@@ -296,8 +296,8 @@ export function initializeWorldMap() {
             return null;
         }
 
-        // Initialize map centered on Africa (center of world music diversity)
-        const map = L.map('world-map').setView([0, 20], 3);
+        // Initialize map centered on the world
+        const map = L.map('world-map').setView([20, 0], 2);
 
         // Add tile layer
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -305,70 +305,60 @@ export function initializeWorldMap() {
             maxZoom: 19
         }).addTo(map);
 
-        // World music culture locations with comprehensive data
-        const musicCultures = [
-            // Africa
-            { lat: 0, lng: 32, name: 'Uganda', culture: 'East African Music', color: '#FF6B6B' },
-            { lat: -25, lng: 25, name: 'South Africa', culture: 'Mbaqanga & Kwaito', color: '#FF6B6B' },
-            { lat: 8, lng: -15, name: 'West Africa', culture: 'Griots & Djembe', color: '#FF6B6B' },
-            { lat: 0, lng: 15, name: 'Congo', culture: 'Rumba & Soukous', color: '#FF6B6B' },
-            
-            // Middle East & Central Asia
-            { lat: 33, lng: 44, name: 'Iraq', culture: 'Maqam Music', color: '#FFA500' },
-            { lat: 35, lng: 69, name: 'Afghanistan', culture: 'Dari Music', color: '#FFA500' },
-            { lat: 41, lng: 74, name: 'Tajikistan', culture: 'Central Asian Music', color: '#FFA500' },
-            
-            // South Asia
-            { lat: 20, lng: 77, name: 'India', culture: 'Classical Raga', color: '#FFD700' },
-            { lat: 27, lng: 85, name: 'Nepal', culture: 'Nepali Folk', color: '#FFD700' },
-            { lat: 6, lng: 81, name: 'Sri Lanka', culture: 'Sinhala Tradition', color: '#FFD700' },
-            
-            // Southeast Asia
-            { lat: 13, lng: 104, name: 'Cambodia', culture: 'Khmer Classical', color: '#90EE90' },
-            { lat: 16, lng: 100, name: 'Thailand', culture: 'Gamelan & Piphat', color: '#90EE90' },
-            { lat: -8, lng: 113, name: 'Indonesia', culture: 'Gamelan & Wayang', color: '#90EE90' },
-            
-            // East Asia
-            { lat: 35, lng: 139, name: 'Japan', culture: 'Gagaku & Shamisen', color: '#87CEEB' },
-            { lat: 39, lng: 116, name: 'China', culture: 'Traditional Pipa', color: '#87CEEB' },
-            { lat: 37, lng: 127, name: 'Korea', culture: 'Pansori & Gayageum', color: '#87CEEB' },
-            
-            // Europe
-            { lat: 51, lng: -0.1, name: 'UK', culture: 'Celtic & Folk', color: '#DDA0DD' },
-            { lat: 48, lng: 2, name: 'France', culture: 'Breton Music', color: '#DDA0DD' },
-            { lat: 52, lng: 13, name: 'Germany', culture: 'Traditional Folk', color: '#DDA0DD' },
-            { lat: 41, lng: 12, name: 'Italy', culture: 'Tarantella & Opera', color: '#DDA0DD' },
-            { lat: 40, lng: 21, name: 'Greece', culture: 'Rebetiko & Rembetiki', color: '#DDA0DD' },
-            
-            // Americas
-            { lat: 40, lng: -74, name: 'USA', culture: 'Blues & Jazz', color: '#FF1493' },
-            { lat: 19, lng: -87, name: 'Caribbean', culture: 'Reggae & Calypso', color: '#FF1493' },
-            { lat: -34, lng: -58, name: 'Argentina', culture: 'Tango', color: '#FF1493' },
-            { lat: -23, lng: -43, name: 'Brazil', culture: 'Samba & Bossa Nova', color: '#FF1493' },
-            { lat: 10, lng: -75, name: 'Colombia', culture: 'Cumbia & Vallenato', color: '#FF1493' },
-            
-            // Oceania
-            { lat: -25, lng: 133, name: 'Australia', culture: 'Aboriginal Didgeridoo', color: '#20B2AA' },
-            { lat: -17, lng: 168, name: 'Vanuatu', culture: 'Oceanic Traditions', color: '#20B2AA' }
-        ];
+        // Import culture data
+        const { getAllExpandedCultures } = await import('./expandedCultures.js');
+        const cultures = getAllExpandedCultures();
 
-        // Add markers for each culture
-        musicCultures.forEach(marker => {
-            const popupContent = `
-                <div style="font-weight: bold;">${marker.name}</div>
-                <div style="font-size: 0.9em; color: #666;">${marker.culture}</div>
-            `;
-            
-            L.circleMarker([marker.lat, marker.lng], {
-                radius: 7,
-                fillColor: marker.color,
-                color: '#333',
-                weight: 2,
-                opacity: 1,
-                fillOpacity: 0.8
-            })
-            .bindPopup(popupContent)
-            .addTo(map);
+        // Color mapping for different regions
+        const regionColors = {
+            'West Africa': '#FF6B6B',
+            'East Africa': '#FF6B6B',
+            'South Africa': '#FF6B6B',
+            'Africa': '#FF6B6B',
+            'Middle East': '#FFA500',
+            'Central Asia': '#FFA500',
+            'South Asia': '#FFD700',
+            'Southeast Asia': '#90EE90',
+            'East Asia': '#87CEEB',
+            'Europe': '#DDA0DD',
+            'Spain': '#DDA0DD',
+            'North America': '#FF1493',
+            'South America': '#FF1493',
+            'Latin America': '#FF1493',
+            'South America/Caribbean': '#20B2AA',
+            'Caribbean': '#20B2AA',
+            'Caribbean Islands': '#20B2AA',
+            'Venezuela': '#FF1493',
+            'Australia': '#20B2AA',
+            'Oceania': '#20B2AA'
+        };
+
+        // Add markers for each culture with coordinates
+        cultures.forEach(culture => {
+            if (culture.coordinates) {
+                const { lat, lng } = culture.coordinates;
+                const color = regionColors[culture.region] || '#999999';
+                
+                const popupContent = `
+                    <div style="font-weight: bold; font-size: 1.1em; margin-bottom: 5px;">${culture.emoji} ${culture.name}</div>
+                    <div style="font-size: 0.9em; color: #666; margin-bottom: 8px;">${culture.region}</div>
+                    <div style="font-size: 0.85em; line-height: 1.4;">${culture.description}</div>
+                `;
+                
+                L.circleMarker([lat, lng], {
+                    radius: 8,
+                    fillColor: color,
+                    color: '#333',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                })
+                .bindPopup(popupContent, {
+                    maxWidth: 300,
+                    className: 'culture-popup'
+                })
+                .addTo(map);
+            }
         });
 
         // Add legend
@@ -379,6 +369,7 @@ export function initializeWorldMap() {
             div.style.padding = '10px';
             div.style.borderRadius = '5px';
             div.style.boxShadow = '0 0 15px rgba(0,0,0,0.2)';
+            div.style.fontSize = '12px';
             
             const regions = [
                 { color: '#FF6B6B', label: 'Africa' },
@@ -388,11 +379,12 @@ export function initializeWorldMap() {
                 { color: '#87CEEB', label: 'East Asia' },
                 { color: '#DDA0DD', label: 'Europe' },
                 { color: '#FF1493', label: 'Americas' },
-                { color: '#20B2AA', label: 'Oceania' }
+                { color: '#20B2AA', label: 'Caribbean/Oceania' }
             ];
             
+            div.innerHTML = '<div style="font-weight: bold; margin-bottom: 8px;">World Music Regions</div>';
             regions.forEach(region => {
-                div.innerHTML += `<div style="margin: 5px 0;"><span style="display:inline-block; width:15px; height:15px; background-color:${region.color}; border-radius:50%; margin-right:8px;"></span>${region.label}</div>`;
+                div.innerHTML += `<div style="margin: 5px 0;"><span style="display:inline-block; width:15px; height:15px; background-color:${region.color}; border-radius:50%; margin-right:8px; border: 1px solid #333;"></span>${region.label}</div>`;
             });
             
             return div;
@@ -401,6 +393,8 @@ export function initializeWorldMap() {
 
         // Handle map resize when tab becomes visible
         window.__WORLD_MAP = map;
+        
+        console.log(`World map initialized with ${cultures.filter(c => c.coordinates).length} cultures`);
         return map;
     } catch (e) {
         console.error('Error initializing map:', e);
