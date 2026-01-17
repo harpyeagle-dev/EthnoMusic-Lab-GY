@@ -1,3 +1,5 @@
+import essentiaHelper from './utils/essentiaHelper.js';
+
 export class MusicComposer {
     constructor(audioContext) {
         this.audioContext = audioContext;
@@ -254,6 +256,17 @@ export class PitchMatchingGame {
         this.tolerance = 10; // Hz
         this.score = 0;
         this.attempts = 0;
+        this.microphone = null;
+        this.analyser = null;
+        this.isListening = false;
+        this.pitchDetectionInterval = null;
+        
+        // Initialize Essentia
+        essentiaHelper.initialize().then(success => {
+            if (success) {
+                console.log('✓ Pitch matching game ready with Essentia.js');
+            }
+        });
     }
 
     generateTargetPitch() {
@@ -267,7 +280,12 @@ export class PitchMatchingGame {
         const gainNode = this.audioContext.createGain();
         
         oscillator.connect(gainNode);
-        gainNode.connect(this.audioContext.destination);
+        const master = (typeof window !== 'undefined' && window.__MASTER_GAIN) ? window.__MASTER_GAIN : null;
+        if (master) {
+            gainNode.connect(master);
+        } else {
+            gainNode.connect(this.audioContext.destination);
+        }
         
         oscillator.frequency.value = this.targetPitch;
         oscillator.type = 'sine';
@@ -278,6 +296,71 @@ export class PitchMatchingGame {
         
         oscillator.start(now);
         oscillator.stop(now + 1);
+    }
+
+    /**
+     * Start real-time pitch detection from microphone
+     */
+    async startListening(onPitchDetected) {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            this.microphone = this.audioContext.createMediaStreamSource(stream);
+            this.analyser = this.audioContext.createAnalyser();
+            this.analyser.fftSize = 2048;
+            
+            this.microphone.connect(this.analyser);
+            this.isListening = true;
+            
+            const bufferLength = this.analyser.fftSize;
+            const dataArray = new Float32Array(bufferLength);
+            
+            // Real-time pitch detection loop
+            this.pitchDetectionInterval = setInterval(() => {
+                if (!this.isListening) return;
+                
+                this.analyser.getFloatTimeDomainData(dataArray);
+                
+                // Use Essentia for pitch detection
+                const pitchData = essentiaHelper.analyzePitch(dataArray, this.audioContext.sampleRate);
+                
+                if (pitchData.frequency > 0 && pitchData.confidence > 0.5) {
+                    if (onPitchDetected) {
+                        onPitchDetected(pitchData.frequency, pitchData.confidence);
+                    }
+                }
+            }, 100); // Check every 100ms
+            
+            return true;
+        } catch (error) {
+            console.error('Microphone access denied:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Stop listening to microphone
+     */
+    stopListening() {
+        this.isListening = false;
+        
+        if (this.pitchDetectionInterval) {
+            clearInterval(this.pitchDetectionInterval);
+            this.pitchDetectionInterval = null;
+        }
+        
+        if (this.microphone && this.microphone.mediaStream) {
+            this.microphone.mediaStream.getTracks().forEach(track => track.stop());
+        }
+        
+        if (this.microphone) {
+            try { this.microphone.disconnect(); } catch (e) {}
+            this.microphone = null;
+        }
+        
+        if (this.analyser) {
+            try { this.analyser.disconnect(); } catch (e) {}
+            this.analyser = null;
+        }
     }
 
     checkMatch(userPitch) {
@@ -295,6 +378,10 @@ export class PitchMatchingGame {
     reset() {
         this.score = 0;
         this.attempts = 0;
+    }
+    
+    cleanup() {
+        this.stopListening();
     }
 }
 
@@ -447,4 +534,354 @@ export function generatePDF(analysisData) {
     a.download = 'ethnomusicology-report.txt';
     a.click();
     URL.revokeObjectURL(url);
+}
+
+/**
+ * Real-time Rhythm Analysis Game using Essentia
+ * Players clap or tap to match rhythmic patterns
+ */
+export class RhythmAnalysisGame {
+    constructor(audioContext) {
+        this.audioContext = audioContext;
+        this.targetTempo = 120;
+        this.microphone = null;
+        this.analyser = null;
+        this.isListening = false;
+        this.detectedBeats = [];
+        this.targetBeats = [];
+        this.score = 0;
+        
+        // Initialize Essentia
+        essentiaHelper.initialize();
+    }
+
+    /**
+     * Set target rhythm pattern
+     */
+    setTargetPattern(tempo, beats = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5]) {
+        this.targetTempo = tempo;
+        this.targetBeats = beats;
+        this.detectedBeats = [];
+    }
+
+    /**
+     * Play target rhythm pattern
+     */
+    playTargetPattern() {
+        const clickDuration = 0.05;
+        const beatsPerSecond = this.targetTempo / 60;
+        const secondsPerBeat = 1 / 
+/**
+ * Real-time Rhythm Analysis Game using Essentia
+ * Players clap or tapcon * o * Players clap or tap to match rhythmic patter); */
+export class RhythmAnalysisGame {
+    constrcrexte    constructor(audioContext) {
+ o        this.audioContext = au          this.targetTempo = 120;
+        GA        this.microphone = nullat        this.analyser = null;
+ec        this.isListening = f          this.detectedBeats = []; =        this.targetBeats = [];
+yp        this.score = 0;
+               
+        // his.       nt        essentiaHelper.initia s    }
+
+    /**
+     * Set target rhe.gain.se     *At     */
+    setTargetPattern(tein    seai        this.targetTempo = tempo;
+        this.targetBeats = beats;
+            this.targetBeats = beatsme        this.detectedBeats = [];im    }
+
+    /**
+     * Play targ
+ 
+   
+
+      *
+      */
+    playTargetPattern()  r    plin        const clickDuratar        const beatsPerSecond = th           const secondsPer stream = await navigator.medi/**
+ * Real-time Rhythm Analysis Ge  *;
+ * Players clap or tapcon * o * Players clap or.cexport class RhythmAnalysisGame {
+    constrcrexte    constructor(audioContext) ea    constrcrexte    constructor(na o        this.audioContext = au          this t        GA        this.microphone = nullat        this.analyser inec        this.isListening = f          this.detectedBeats = []; =    ffyp        this.score = 0;
+               
+        // his.       nt        essentiaHelper.initiae                
+              lastBeatTime
+    /**
+     * Set target rhe.gain.se     *At     */
+    s        *      setTargetPattern(tein    sturn;
+                 this.targetBeats = beats;
+            this.targetBeats = Ar            this.targetBeats = b  
+    /**
+     * Play targ
+ 
+   
+
+      *
+      */
+    playTargetPattern()  ress     *el 
+   
+
+      *
+hm(d
+ aAr      hi    ploCo * Real-time Rhythm Analysis Ge  *;
+ * Players clap or tapcon * o * Players clap or.cexport class RhythmAnalysisGame {
+    constrcrexte    constructor(a   * Players clap or tapcon aArray.len    constrcrexte    constructor(audioContext) ea    constrcrexte    constructor(n                 
+        // his.       nt        essentiaHelper.initiae                
+              lastBeatTime
+    /**
+     * Set target rhe.gain.se     *At     */
+    s        *      setTargetPattern(tein    sturn;
+                 this.targetBeats = beats;
+            this.targetBeats =          // his                lastBeatTime
+    /**
+     * Set target rhe.gain.se     me    /*rentTime;
+                *      s        *      setTargetPattern(tein  
+                  this.targetBeats = beats;
+        e            this.targetBeats = Ar              /**
+     * Play targ
+ 
+   
+
+      *
+      */
+    playTargetPatBe     *   
+   
+
+      *
+    
+                plaet   
+
+      *
+hm(d
+ aAr      hi    plo  
+     } catch aArr * Players clap or tapcon * o * Players clap or.cexported    constrcrexte    constructor(a   * Players clap or tapcon aArray.len    consenin        // his.       nt        essentiaHelper.initiae                
+              lastBeatTime
+    /**
+     * Set target rhe.gain.se     *At     */
+    s        *   ia              lastBeatTime
+    /**
+     * Set target rhe.gain.se     
+     /**
+     * Set targete)     *      s        *      setTargetPattern(tein  }                  this.targetBeats = beats;
+                     this.targetBeats =          /)     /**
+     * Set target rhe.gain.se     me    /*rentTime;
+                    *na                *      s        *      setTargetPaul                  this.targetBeats = beats;
+        e         i        e            this.targetBeats = Ar 0     * Play targ
+ 
+   
+
+      *
+      */
+    playTargetPat / 
+   
+
+      *
+nst 
+ con      ea    pla b   
+
+      *
+    
+         t 
+ ler    
+  s   nd
+      *
+hm(d
+ aAr     tolhm(d
+ 
+  aA       } catch aArr * es              lastBeatTime
+    /**
+     * Set target rhe.gain.se     *At     */
+    s        *   ia              lastBeatTime
+    /**
+     * Set target rhe.gain.se     
+     /**
+     * Set targete)     *      s        *      se)    /**
+     * Set target);     *      s        *   ia                   });
+       /**
+     * Set target rhe.gain.se     
+ is     *tB     /**
+     * Set targete)     sc     * at                     this.targetBeats =          /)     /**
+     * Set target rhe.gain.se     me    /*rentTime;
+ sc     * Set target rhe.gain.se     me    /*rentTime;
+   ing()                    *na                *      s   ti        e         i        e            this.targetBeats = Ar 0     * Play targ
+ 
+   
+
+      *
+      */
+    playTarge   
+   
+
+      *
+      */
+    playTargetPat / 
+   
+
+      *
+nst 
+ con      ea       
+  th      re    pla     
+
+      *
+nst 
+ in
+ rumnst 
+  [ co  
+      *
+    
+         , c    
+ dR   e: ler    
+ 00  s   nht      *gehm(d
+ ,  aA]  
+  aA       } { na    /**
+     * Set target rhe.gain.se     *At     */
+an     *.4    s        *   ia          : 'Flute', centr    /**
+     * Set target rhe.gain.se     
+ 6,     *},     /**
+     * Set targete)     en     * ng     * Set target);     *      s        *   ia                   /**
+     * Set target rhe.gain.se     
+ is     *tB     /**
+ 3,     * Se   is     *tB     /**
+     * Set taid     * Set targete,      * Set target rhe.gain.se     me    /*rentTime;
+ sc     * Set target rhe.gain.se     me  ri sc     * Set target rhe.gain           { name: 'Vio   ing()                    *na                *     0. 
+   
+
+      *
+      */
+    playTarge   
+   
+
+      *
+      */
+    playTargetPat / 
+   
+
+      *
+nst 
+ con      ea       
+  th      re    iden
+ fy       me    pla *   
+
+      *
+  ly
+ Aud      io    pla {   
+
+      *
+nst 
+ ti
+ elpnst 
+ dy co {  th      re    pln 
+      *
+nst 
+ in
+ rumn, cnst 
+ nc in0, rea  [ co {}      *      
+         dR   e: ler   at 00  s   nht    a ,  aA]  
+  aA       } {et  aA  lDat     * Set target rhe.g//an     *.4    s        *   ia          : 'F       * Set target rhe.gain.se     
+ 6,     *},     /**
+     *au 6,     *},     /**
+     * Set tase     * Set targeteMF     * Set target rhe.gain.se     
+ is     *tB     /**
+ 3,     * Se   is     *tB     /**
+     * Set tais is     *tB     /**
+ 3,     * Se re 3,     * Se   is        * Set taid     * Set target:  sc     * Set target rhe.gain.se     me  ri sc     * Set target rhe.gain           {  {   
+
+      *
+      */
+    playTarge   
+   
+
+      *
+      */
+    playTargetPat / 
+   
+
+      *
+nst 
+ con      ea       
+  th      re    iden
+ fy      es
+ oll            pla     
+
+      *
+c
+  
+          
+     pla};   
+
+      *
+nst 
+   * Matnst 
+ ct co f  th      re    iden fy       me    plaif
+      *
+  ly
+ Aud     tur  ly
+        
+      *
+nst 
+ ti
+ elpnhtnnst 
+ =  tict elF dy co ;
+      *
+nst 
+ in
+ rumn, cnstcnst 
+ na in 'Unkn nc in0, rede         dR   e: ler   at 00  s  0;  aA       } {et  aA  lDat     * Set target rhe.g/ { 6,     *},     /**
+     *au 6,     *},     /**
+     * Set tase     * Set targeteMF     * Set entroid >= inst.centroidRange[0] && c     *au 6,     *}nt     * Set tase     * Set    is     *tB     /**
+ 3,     * Se   is     *tB     /**
+     * Set taigh 3,     * Se   is        * Set tais is     *tB     /tn 3,     * Se re 3,     * Se   is .b
+      *
+      */
+    playTarge   
+   
+
+      *
+      */
+    playTargetPat / 
+   
+
+      *
+nst 
+ con      ea       
+  th      re    iden
+ fy      es
+ oll              Ma    pla n   
+
+      *
+   confid      sc    pla00   
+
+      *
+nst 
+   
+    nst 
+    co 
+  th      re    idtM fy      es
+ oll   tC oll      er
+      *
+c
+  
+            c
+  
+ curr nt     pla}t 
+      *
+nstName;
+    }
+
+    ct co f  tr(      *
+  ly
+ Aud     tur  ly
+        
+      *
+nument) {
+              
+      e += 10;
+           tiet en  =  tict eltr      *
+nst 
+ in
+ rrenst 
+       } r   na in 'Unkn ncor     *au 6,     *},     /**
+     *    }
+
+    reset() {
+        this.score = 0;
+        this.currentInstrument = null;
+    }
 }
