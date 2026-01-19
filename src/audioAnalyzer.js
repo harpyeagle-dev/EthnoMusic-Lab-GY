@@ -2550,6 +2550,8 @@ function displayMelodicFrequencyAnalysis(result) {
     window.melodicFrequencyChart = canvas;
 }
 
-// Make it globally available
-window.analyzeAudioFile = analyzeAudioFile;
-window.displayAnalysisResults = displayAnalysisResults;
+// Make it globally available in browsers only
+if (typeof window !== 'undefined') {
+    window.analyzeAudioFile = analyzeAudioFile;
+    window.displayAnalysisResults = displayAnalysisResults;
+}
