@@ -1281,6 +1281,10 @@ let aggregateWaveform = null;
 let aggregateSpectrum = null;
 let aggregateFrames = 0;
 let lastAnalysisMetrics = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let recordTimerInterval = null;
+let recordStartTime = null;
 
 // Ensure AudioContext is running with a guarded resume and recreation fallback
 async function ensureAudioContextRunning(existingCtx, label = '') {
@@ -2448,6 +2452,69 @@ function downloadCanvasAsImage(canvasId, filename) {
     link.click();
 }
 
+function downloadBlob(blob, filename) {
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+function toWavBlob(audioBuffer) {
+    const numChannels = audioBuffer.numberOfChannels;
+    const sampleRate = audioBuffer.sampleRate;
+    const numSamples = audioBuffer.length;
+    const bytesPerSample = 2;
+    const blockAlign = numChannels * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + numSamples * blockAlign);
+    const view = new DataView(buffer);
+
+    const writeString = (offset, str) => {
+        for (let i = 0; i < str.length; i++) {
+            view.setUint8(offset + i, str.charCodeAt(i));
+        }
+    };
+
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + numSamples * blockAlign, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bytesPerSample * 8, true);
+    writeString(36, 'data');
+    view.setUint32(40, numSamples * blockAlign, true);
+
+    const channels = [];
+    for (let i = 0; i < numChannels; i++) {
+        channels.push(audioBuffer.getChannelData(i));
+    }
+
+    let offset = 44;
+    for (let i = 0; i < numSamples; i++) {
+        for (let ch = 0; ch < numChannels; ch++) {
+            let sample = channels[ch][i];
+            sample = Math.max(-1, Math.min(1, sample));
+            view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7fff, true);
+            offset += 2;
+        }
+    }
+
+    return new Blob([view], { type: 'audio/wav' });
+}
+
+function formatTime(ms) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
 function setupMusicAnalysis() {
     // Initialize Essentia if available
     initEssentia();
@@ -2457,6 +2524,8 @@ function setupMusicAnalysis() {
     const stopAudioBtn = document.getElementById('stopAudioBtn');
     const micBtn = document.getElementById('microphoneBtn');
     const stopMicBtn = document.getElementById('stopMicBtn');
+    const recordMicBtn = document.getElementById('recordMicBtn');
+    const recordTimerEl = document.getElementById('recordTimer');
     const analysisStatus = document.getElementById('analysisStatus');
     const downloadWaveformBtn = document.getElementById('downloadWaveformBtn');
     const downloadSpectrumBtn = document.getElementById('downloadSpectrumBtn');
@@ -2465,6 +2534,15 @@ function setupMusicAnalysis() {
     if (!uploadBtn || !fileInput || !micBtn || !stopMicBtn || !stopAudioBtn) {
         console.error('Music analysis elements not found in DOM');
         return;
+    }
+
+    if (recordMicBtn) {
+        recordMicBtn.disabled = true;
+    }
+
+    if (recordTimerEl) {
+        recordTimerEl.textContent = '00:00';
+        recordTimerEl.style.display = 'none';
     }
 
     if (analysisStatus) {
@@ -2921,6 +2999,9 @@ function setupMusicAnalysis() {
 
             micBtn.style.display = 'none';
             stopMicBtn.style.display = 'inline-block';
+            if (recordMicBtn) {
+                recordMicBtn.disabled = false;
+            }
 
             document.getElementById('durationMetric').textContent = 'Live';
 
@@ -2956,6 +3037,9 @@ function setupMusicAnalysis() {
     });
 
     stopMicBtn.addEventListener('click', () => {
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+            mediaRecorder.stop();
+        }
         if (microStream) {
             microStream.getTracks().forEach(track => track.stop());
             microStream = null;
@@ -2991,6 +3075,19 @@ function setupMusicAnalysis() {
 
         micBtn.style.display = 'inline-block';
         stopMicBtn.style.display = 'none';
+        if (recordMicBtn) {
+            recordMicBtn.textContent = 'Record';
+            recordMicBtn.disabled = true;
+        }
+        if (recordTimerEl) {
+            recordTimerEl.textContent = '00:00';
+            recordTimerEl.style.display = 'none';
+        }
+        if (recordTimerInterval) {
+            clearInterval(recordTimerInterval);
+            recordTimerInterval = null;
+            recordStartTime = null;
+        }
 
         console.log('Microphone stopped - visualizations preserved');
 
@@ -3033,6 +3130,110 @@ function setupMusicAnalysis() {
             analysisStatus.textContent = 'Microphone stopped. Last analysis snapshot shown.';
         }
     });
+
+    if (recordMicBtn) {
+        recordMicBtn.addEventListener('click', async () => {
+            if (!microStream) {
+                alert('Start the microphone before recording.');
+                return;
+            }
+
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+                return;
+            }
+
+            recordedChunks = [];
+            const mimeTypes = [
+                'audio/webm;codecs=opus',
+                'audio/ogg;codecs=opus',
+                'audio/webm'
+            ];
+            let chosenType = '';
+            for (const type of mimeTypes) {
+                if (window.MediaRecorder && MediaRecorder.isTypeSupported(type)) {
+                    chosenType = type;
+                    break;
+                }
+            }
+
+            try {
+                mediaRecorder = chosenType
+                    ? new MediaRecorder(microStream, { mimeType: chosenType })
+                    : new MediaRecorder(microStream);
+            } catch (err) {
+                console.error('MediaRecorder init failed:', err);
+                alert('Recording is not supported in this browser.');
+                return;
+            }
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    recordedChunks.push(event.data);
+                }
+            };
+
+            mediaRecorder.onstop = async () => {
+                recordMicBtn.textContent = 'Record';
+                if (recordTimerInterval) {
+                    clearInterval(recordTimerInterval);
+                    recordTimerInterval = null;
+                    recordStartTime = null;
+                }
+                if (recordTimerEl) {
+                    recordTimerEl.textContent = '00:00';
+                    recordTimerEl.style.display = 'none';
+                }
+                if (!recordedChunks.length) {
+                    return;
+                }
+
+                if (analysisStatus) {
+                    analysisStatus.textContent = 'Processing recording...';
+                }
+
+                try {
+                    const blob = new Blob(recordedChunks, { type: recordedChunks[0].type || 'audio/webm' });
+                    const arrayBuffer = await blob.arrayBuffer();
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const audioBuffer = await ctx.decodeAudioData(arrayBuffer.slice(0));
+                    const wavBlob = toWavBlob(audioBuffer);
+                    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    downloadBlob(wavBlob, `mic-recording-${stamp}.wav`);
+                    ctx.close();
+                    if (analysisStatus) {
+                        analysisStatus.textContent = 'Recording saved as WAV.';
+                    }
+                } catch (err) {
+                    console.error('Recording conversion failed:', err);
+                    alert('Recording saved failed. Try again.');
+                    if (analysisStatus) {
+                        analysisStatus.textContent = 'Recording failed to save.';
+                    }
+                }
+            };
+
+            mediaRecorder.start();
+            recordMicBtn.textContent = 'Stop Recording';
+            recordStartTime = Date.now();
+            if (recordTimerEl) {
+                recordTimerEl.textContent = '00:00';
+                recordTimerEl.style.display = 'inline-flex';
+            }
+            if (recordTimerInterval) {
+                clearInterval(recordTimerInterval);
+            }
+            recordTimerInterval = setInterval(() => {
+                if (!recordStartTime || !recordTimerEl) {
+                    return;
+                }
+                recordTimerEl.textContent = formatTime(Date.now() - recordStartTime);
+            }, 250);
+            if (analysisStatus) {
+                analysisStatus.textContent = 'Recording microphone...';
+            }
+        });
+    }
 }
 
 // Console welcome message

@@ -682,6 +682,17 @@ footer {
     flex-wrap: wrap;
 }
 
+.record-timer {
+    display: none;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(206, 17, 38, 0.12);
+    color: #ce1126;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
 .analysis-status {
     margin-top: 12px;
     padding: 10px 12px;
