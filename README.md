@@ -1,297 +1,101 @@
-# 🎵 Ethnomusicology Explorer
-
-[![CI](https://github.com/harpyeagle-dev/world-music-lab/actions/workflows/ci.yml/badge.svg)](https://github.com/harpyeagle-dev/world-music-lab/actions/workflows/ci.yml)
-[![Deploy](https://github.com/harpyeagle-dev/world-music-lab/actions/workflows/pages.yml/badge.svg)](https://github.com/harpyeagle-dev/world-music-lab/actions/workflows/pages.yml)
+# Decoding the Baboon Dance: A Curriculum in Digital Humanities and Computational Ethnomusicology
 
-An interactive computational ethnomusicology application designed for all ages to explore, analyze, and learn about music from cultures around the world.
+**Author:** Rohan Sagar  
+**Date:** June 15, 2025
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Node](https://img.shields.io/badge/node-%3E%3D14.0.0-brightgreen.svg)
+## Overview
 
-## 🌍 Overview
+This digital curriculum explores the intersection of ethnomusicology, digital humanities, and computational analysis through the lens of the Baboon Dance—a traditional cultural practice from Guyana. Students will learn to combine cultural understanding with cutting-edge computational tools to analyze, preserve, and reimagine Indigenous musical traditions.
 
-**Ethnomusicology Explorer** is a comprehensive music education platform combining advanced audio analysis, AI-powered composition, real-time pitch detection, and interactive learning to make world music accessible and engaging for all ages. Using cutting-edge audio processing algorithms, the app can analyze musical patterns, identify cultural characteristics, and provide deep educational insights about music from 16+ global traditions.
+## Curriculum Goals
 
-### Key Features
+- Develop critical understanding of ethnomusicology and Indigenous music traditions
+- Learn computational methods for sound analysis and pattern recognition
+- Apply machine learning techniques to cultural heritage preservation
+- Create digital exhibits and presentations that honor cultural authenticity
+- Foster interdisciplinary thinking across humanities, technology, and arts
 
-#### 🌏 Cultural Exploration (18+ Cultures)
-- West African, Indian Classical, Chinese Traditional, Middle Eastern, Latin American
-- Aboriginal Australian, European Folk, Japanese Traditional, Mongolian Throat Singing
-- Indonesian Gamelan, Flamenco, Andean, Bluegrass, Brazilian Samba
-- Caribbean Steel Pan, Korean Traditional, Venezuelan Joropo, Caribbean Rhythms
-- Each with detailed information, characteristic sounds, and video tutorials
+## Target Audience
 
-#### 🔬 Advanced Audio Analysis
-- **Pitch Detection**: Autocorrelation-based fundamental frequency detection
-- **Rhythm Analysis**: Tempo (BPM), beat regularity, onset detection
-- **Spectral Analysis**: Timbre, brightness, harmonic content
-- **Cultural Matching**: AI-powered suggestions for cultural origins
-- **Real-time Processing**: Live microphone pitch detection
+- **Grade Level:** Upper Secondary (Forms 4–6) / Year 1 Undergraduate
+- **Prerequisites:** Basic music appreciation, introductory computer skills
+- **Duration:** Full semester (14-16 weeks)
 
-#### 🎤 Live Performance Tools
-- **Real-time Pitch Visualization**: See your singing/playing in real-time
-- **Pitch Contour Display**: Beautiful animated pitch graphs
-- **Pitch Matching Game**: Match target notes with your voice
-- **Volume Meter**: Visual feedback of your performance
+## Module Structure
 
-#### 🎼 Music Creation Suite
-- **Composition Canvas**: Visual piano roll for creating melodies
-- **Cultural Scale Mixer**: Blend scales from different traditions
-- **AI Music Generator**: Automatic melody creation
-- **Loop Station**: Record and layer musical loops
-- **MIDI Export**: Download your compositions
+### [Module 1: Foundations of Ethnomusicology and the Baboon Dance](modules/module-01/README.md)
+Introduction to ethnomusicology, cultural context of the Baboon Dance, and ethical considerations in studying Indigenous music.
 
-#### 🎮 Interactive Learning Games
-- **Rhythm Matching**: Recreate complex rhythmic patterns
-- **Pitch Matching Challenge**: Train your ear with precision
-- **Culture Quiz**: Test your knowledge with 100+ questions
-- **Instrument Identification**: Guess instruments by timbre
-- **Scale Explorer**: Play and learn different musical scales
-- **Rhythm Dictation**: Listen and transcribe rhythms
+### [Module 2: Computational Sound Analysis](modules/module-02/README.md)
+Learn audio signal processing, spectral analysis, and digital tools for sound visualization.
 
-#### 📊 Progress & Achievements
-- **Level System**: Earn XP and level up through learning
-- **Badges & Achievements**: Unlock rewards for milestones
-- **High Scores**: Track your best performances
-- **Progress Saving**: LocalStorage saves your journey
-- **Musical Glossary**: Learn 20+ music theory terms
+### [Module 3: Machine Learning for Audio](modules/module-03/README.md)
+Explore embeddings, feature extraction, and pattern recognition in musical data.
 
-#### 🎨 Customization & Accessibility
-- **Dark Mode**: Eye-friendly theme toggle
-- **Responsive Design**: Works on desktop, tablet, and mobile
-- **Keyboard Shortcuts**: Power user features
-- **Accessible UI**: ARIA labels and focus management
-- **Multiple Visualizations**: 3D spectrograms, pitch contours, rhythm circles
+### [Module 4: Comparative Ethnomusicology](modules/module-04/README.md)
+Compare the Baboon Dance with other Indigenous traditions using computational methods.
 
-#### 💾 Export & Sharing
-- **Download Recordings**: Save your audio files
-- **Export Analysis Reports**: PDF/text format reports
-- **MIDI Export**: Use compositions in other software
-- **JSON Data Export**: Full analysis data export
+### [Module 5: Data Visualization and Interpretation](modules/module-05/README.md)
+Create meaningful visualizations that respect cultural context while revealing musical patterns.
 
-## 🚀 Quick Start
+### [Module 6: Digital Archiving and Preservation](modules/module-06/README.md)
+Learn best practices for digitizing, cataloging, and preserving cultural heritage.
 
-### Prerequisites
+### [Module 7: Remix, Reflection, and Exhibition](modules/module-07/README.md)
+Design and present a final digital exhibition combining analysis, creativity, and cultural sensitivity.
 
-- Node.js (v14 or higher)
-- npm or yarn
-- Modern web browser with Web Audio API support
+## Resources
 
-### Installation
+- **[Worksheets](worksheets/)** - Student activity sheets for each module
+- **[Lesson Plans](lesson-plans/)** - Detailed teaching guides with timing and activities
+- **[Technical Setup](setup/)** - Software installation and configuration guides
+- **[Audio Samples](resources/audio/)** - Curated sound files for analysis
+- **[Visual Materials](resources/images/)** - Graphs, diagrams, and cultural documentation
 
-```bash
-# Clone the repository
-cd "Computational Ethnousicology App"
+## Learning Outcomes
 
-# Install dependencies
-npm install
+By the end of this curriculum, students will be able to:
 
-# Start development server
-npm start
-```
+1. Explain the cultural significance and historical context of the Baboon Dance
+2. Use Python and audio libraries to analyze sound files
+3. Apply machine learning models (OpenL3, PCA) to musical data
+4. Interpret computational visualizations in cultural context
+5. Create ethical, culturally-informed digital exhibits
+6. Engage critically with technology's role in cultural preservation
 
-The application will open automatically in your default browser at `http://localhost:8080`.
+## Assessment Approaches
 
-### Building for Production
+- Reflective journals and discussion participation
+- Technical reports with code and visualizations
+- Comparative analysis presentations
+- Collaborative research projects
+- Final digital exhibition/portfolio
 
-```bash
-npm run build
-```
+## Technology Requirements
 
-The production-ready files will be generated in the `dist/` directory.
+- **Software:** Python 3.8+, Jupyter Notebooks, Librosa, OpenL3, scikit-learn
+- **Hardware:** Computer with audio playback, headphones recommended
+- **Optional:** Projector, audio interface for higher-quality playback
 
-### Deploying on GitHub Pages
+## Getting Started
 
-- Deployment is handled automatically by GitHub Actions.
-- Ensure Pages is set to "GitHub Actions" in Settings → Pages.
-- The workflow in [.github/workflows/pages.yml](.github/workflows/pages.yml) builds and deploys on `main` pushes or manual runs.
-- After deployment, your site will be available at your repository’s Pages URL.
+1. Review the [Technical Setup Guide](setup/INSTALLATION.md)
+2. Read the [Cultural Context Document](resources/cultural-context.md)
+3. Start with [Module 1](modules/module-01/README.md)
+4. Access [Worksheet #1](worksheets/worksheet-01.md) for your first activity
 
-Manual deploy:
+## Acknowledgments
 
-```bash
-# From the Actions tab, run "Deploy to GitHub Pages"
-```
+This curriculum honors the Indigenous communities whose musical traditions inspire this work. We acknowledge the need for respectful, collaborative approaches to cultural heritage study and commit to ethical practices in digital humanities research.
 
-## 🎯 How to Use
+## License and Usage
 
-### 1. Explore Cultures Tab
-
-- Browse through different musical cultures from around the world
-- Click on any culture card to learn about its musical characteristics
-- Listen to synthesized demonstrations of each culture's scale patterns
-- Read fascinating facts about instruments and traditions
-
-### 2. Analyze Music Tab
-
-- Upload any audio file (MP3, WAV, etc.)
-- View detailed analysis including:
-  - **Pitch Analysis**: Frequency distribution and note identification
-  - **Rhythm Analysis**: Tempo detection, beat regularity, and onset detection
-  - **Spectral Features**: Timbre characteristics and brightness
-  - **Cultural Matching**: AI-powered suggestions for cultural origins
-
-### 3. Learn & Play Tab
-
-- **Rhythm Matcher**: Practice creating rhythmic patterns
-- **Culture Quiz**: Test your knowledge of world music
-- **Scale Explorer**: Play and learn about different musical scales from various traditions
-
-### 4. Record & Compare Tab
-
-- Record yourself singing or playing an instrument
-- Analyze your recording's musical characteristics
-- Compare your music to different cultural traditions
-
-## 🔧 Technical Details
-
-### Architecture
-
-The app is built using:
-
-- **Frontend**: Vanilla JavaScript (ES6+), HTML5, CSS3
-- **Audio Processing**: Tone.js for synthesis, Web Audio API for analysis
-- **Visualizations**: Chart.js for data visualization
-- **Build System**: Webpack with Babel for modern JavaScript
-
-### Core Algorithms
-
-#### Pitch Detection
-Uses autocorrelation method to detect fundamental frequency:
-- Analyzes audio buffer in real-time
-- Identifies dominant pitches and converts to musical notes
-- Maps frequencies to MIDI note numbers
-
-#### Rhythm Analysis
-Detects rhythmic patterns through:
-- Onset detection (note start times)
-- Inter-onset interval calculation
-- Tempo estimation (BPM)
-- Regularity scoring (pattern consistency)
-
-#### Spectral Analysis
-Extracts timbral features including:
-- Spectral centroid (brightness)
-- Spectral rolloff (harmonic distribution)
-- Spectral flux (timbral change over time)
-
-#### Cultural Matching
-Machine learning-inspired algorithm that:
-- Compares analyzed features to cultural databases
-- Scores matches based on tempo, scale, rhythm, and timbre
-- Provides confidence ratings for cultural origins
-
-### File Structure
-
-```
-Computational Ethnousicology App/
-├── src/
-│   ├── index.js              # Main application entry point
-│   ├── index.html            # HTML template
-│   ├── styles.css            # Styling
-│   ├── audioAnalyzer.js      # Audio analysis algorithms
-│   └── culturesData.js       # Cultural database and matching
-├── dist/                     # Production build (generated)
-├── package.json              # Project dependencies
-├── webpack.config.js         # Webpack configuration
-└── README.md                 # This file
-```
-
-## 🎓 Educational Use
-
-This application is perfect for:
-
-- **Students**: Learn about music theory and world cultures
-- **Educators**: Teaching tool for music and cultural studies
-- **Musicians**: Understand different musical traditions
-- **Researchers**: Quick analysis of musical patterns
-- **Curious Minds**: Explore the diversity of human musical expression
-
-## 🌟 Features in Detail
-
-### Cultural Database
-
-Includes detailed information about:
-- West African polyrhythmic traditions
-- Indian classical ragas and talas
-- Chinese pentatonic systems
-- Middle Eastern maqamat
-- Latin American syncopation
-- Aboriginal Australian didgeridoo traditions
-- European folk music
-- Japanese traditional ma (space/silence)
-
-### Analysis Capabilities
-
-- **Pitch**: Fundamental frequency, note names, scale identification
-- **Rhythm**: BPM, beat positions, regularity metrics
-- **Timbre**: Spectral centroid, brightness, harmonic content
-- **Pattern**: Repetition detection, melodic contours
-
-## 🤝 Contributing
-
-Contributions are welcome! Areas for improvement:
-
-- Additional cultural traditions
-- More sophisticated analysis algorithms
-- Enhanced visualizations
-- Mobile optimization
-- Accessibility features
-- Audio sample library
-
-## 📝 Future Enhancements
-
-- [ ] Real-time microphone analysis
-- [ ] Collaborative learning features
-- [ ] Expanded cultural database (100+ cultures)
-- [ ] Machine learning for better cultural matching
-- [ ] Audio sample library with authentic recordings
-- [ ] Social sharing capabilities
-- [ ] Multi-language support
-- [ ] Offline mode
-
-## 🙏 Acknowledgments
-
-This project draws on research in:
-- Computational musicology
-- Digital signal processing
-- Ethnomusicology
-- Music information retrieval
-
-Special thanks to the communities preserving and sharing their musical traditions.
-
-## 📄 License
-
-MIT License - feel free to use this project for educational purposes.
-
-## 🐛 Troubleshooting
-
-### Audio won't play
-- Ensure your browser supports Web Audio API (Chrome, Firefox, Safari, Edge)
-- Check browser permissions for audio playback
-- Try clicking anywhere on the page first (browsers require user interaction)
-
-### Recording doesn't work
-- Grant microphone permissions when prompted
-- Check browser console for errors
-- Ensure you're using HTTPS or localhost
-
-### Analysis seems inaccurate
-- Ensure audio files are clear and not heavily compressed
-- Better results with longer samples (30+ seconds)
-- Monaural (single channel) audio works best
-
-## 📧 Contact & Creator
-
-**Created by Rohan R. Sagar** - A passionate developer dedicated to making world music accessible through technology.
-
-For questions, suggestions, or feedback:
-- 📧 Email: rohan@ethnomusicologyapp.com
-- 💼 GitHub: Open an issue on the repository
-- 🌐 Website: [Digital Heritage GY](https://www.digitalheritagegy.com)
+This curriculum is designed for educational purposes. When using or adapting materials, please:
+- Credit original sources and communities
+- Obtain appropriate permissions for cultural materials
+- Maintain ethical standards in digital humanities work
+- Share improvements with the broader educational community
 
 ---
 
-**Built with ❤️ by Rohan R. Sagar for music education and cultural appreciation**
-
-*"Music is the universal language that connects all cultures."*
+**Contact:** For questions or feedback about this curriculum, please refer to the original documentation or reach out through appropriate academic channels.

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethnomusic Lab GY - World Music Explorer</title>
+    <link rel="stylesheet" href="styles.css?v=4">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ethnomusic Lab GY</h1>
+            <p class="subtitle">Explore the Rich Musical Heritage of Guyana and the World</p>
+        </header>
+
+        <div class="local-notice" id="localNotice">
+            <div class="local-notice-text">
+                <strong>Localhost required for audio input.</strong>
+                Open this page from a local server to use the microphone and audio analysis tools.
+                <span class="local-url" id="localUrl">http://localhost:5173/index.html</span>
+            </div>
+            <div class="local-notice-actions">
+                <button class="control-btn" id="copyLocalhostLink">Copy localhost link</button>
+            </div>
+        </div>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="explorer">Instrument Explorer</button>
+            <button class="tab-btn" data-tab="regions">Regional Music Curriculum</button>
+            <button class="tab-btn" data-tab="rhythms">Rhythm Patterns</button>
+            <button class="tab-btn" data-tab="analyze">Analyze Music</button>
+            <button class="tab-btn" data-tab="quiz">Quiz Game</button>
+            <button class="tab-btn" data-tab="compare">Compare</button>
+            <button class="tab-btn" data-tab="favorites">Favorites</button>
+            <button class="tab-btn" data-tab="about">About</button>
+        </nav>
+
+        <main>
+            <!-- Instrument Explorer Tab -->
+            <section id="explorer" class="tab-content active">
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="Search instruments by name, region, or culture...">
+                    <select id="regionFilter">
+                        <option value="all">All Regions</option>
+                        <option value="guyana">Guyana</option>
+                        <option value="caribbean">Caribbean</option>
+                        <option value="africa">Africa</option>
+                        <option value="india">India</option>
+                        <option value="indigenous">Indigenous Americas</option>
+                    </select>
+                </div>
+
+                <div class="instruments-grid" id="instrumentsGrid">
+                    <!-- Instruments will be dynamically loaded here -->
+                </div>
+            </section>
+
+            <!-- Regional Music Tab -->
+            <section id="regions" class="tab-content">
+                <div class="curriculum-container">
+                    <div class="curriculum-hero">
+                        <h2>Regional Music Curriculum</h2>
+                        <p class="curriculum-intro">A classroom-ready pathway that centers Guyana's cultural heritage and connects it to regional and global traditions.</p>
+                        <div class="curriculum-meta">
+                            <span class="curriculum-pill">Grades 6-10</span>
+                            <span class="curriculum-pill">6-week term</span>
+                            <span class="curriculum-pill">Project-based</span>
+                        </div>
+                    </div>
+
+                    <div class="curriculum-grid">
+                        <div class="curriculum-card">
+                            <h3>Learning Goals</h3>
+                            <ul class="curriculum-list">
+                                <li>Identify core instruments and their cultural roles.</li>
+                                <li>Compare rhythmic patterns across Guyana's diverse ethnic communities.</li>
+                                <li>Explain how migration shaped Guyanese music.</li>
+                                <li>Connect music to lifestyles, behaviors, and social identity.</li>
+                                <li>Create a short reflection or performance plan.</li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Lesson Flow</h3>
+                            <ul class="curriculum-list">
+                                <li>Lesson 1: Heritage map and sound timeline.</li>
+                                <li>Lesson 2: Rhythm lab with local patterns.</li>
+                                <li>Lesson 3: Instrument features and materials.</li>
+                                <li>Lesson 4: Comparative insights across Guyana's ethnic groups and instruments.</li>
+                                <li>Lesson 4-5: Student showcase or report.</li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Student Activities</h3>
+                            <ul class="curriculum-list">
+                                <li>Soundwalk journal with regional categories.</li>
+                                <li>Soundtrack of Daily Life: collect home/community sounds and explain routines and values.</li>
+                                <li>Instrument compare sheet from Explorer tab.</li>
+                                <li>Comparative lessons: what we learn by comparing music across Guyana's diverse ethnic groups.</li>
+                                <li>Group rhythm performance with call-and-response.</li>
+                                <li>Mini-interview: how music shapes daily routines and community life.</li>
+                                <li>Genre Timeline wall: map genres to migration, trade, or political events.</li>
+                                <li>Culture cards to presentation storyboard.</li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Assessment</h3>
+                            <ul class="curriculum-list">
+                                <li>Exit ticket: one new instrument insight.</li>
+                                <li>Short audio analysis reflection.</li>
+                                <li>Comparative lesson prompt (diverse ethnic groups in Guyana).</li>
+                                <li>Team presentation rubric (accuracy + clarity).</li>
+                                <li>Self-evaluation on participation.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="curriculum-path">
+                        <h3>Guided Listening Path</h3>
+                        <ol class="curriculum-steps">
+                            <li>Start with Guyanese traditions and local festivals.</li>
+                            <li>Trace African and Indian influences in rhythm.</li>
+                            <li>Connect Caribbean styles to shared histories.</li>
+                            <li>Compare tracks across Guyana's ethnic groups to identify a key lesson.</li>
+                            <li>Reflect on Indigenous knowledge and continuity.</li>
+                        </ol>
+                    </div>
+
+                    <div class="curriculum-lens">
+                        <h3>Sociology Lens</h3>
+                        <ul class="curriculum-list">
+                            <li>How do music choices reflect lifestyle and identity?</li>
+                            <li>Which behaviors change during festivals or ceremonies?</li>
+                            <li>How does music reinforce community values or social roles?</li>
+                            <li>What do we learn when we compare music across Guyana's diverse ethnic groups?</li>
+                            <li>What happens to traditions when communities migrate?</li>
+                        </ul>
+                    </div>
+
+                    <div class="curriculum-pacing">
+                        <h3>6-Week Pacing Guide</h3>
+                        <ul class="curriculum-list">
+                            <li>Week 1: Heritage map, community soundscapes, local musician spotlight kickoff.</li>
+                            <li>Week 2: Instrument Explorer research and local artist case study.</li>
+                            <li>Week 3: Rhythm Patterns lab, performance practice, and compare to local tracks.</li>
+                            <li>Week 4: Sociology lens discussion, mini-interviews, and local musician context.</li>
+                            <li>Week 5: Project planning with local musician evidence and peer feedback.</li>
+                            <li>Week 6: Showcase featuring local musician connections, reflection, and exit ticket.</li>
+                        </ul>
+                    </div>
+
+                    <div class="curriculum-support">
+                        <div class="curriculum-card">
+                            <h3>Teacher Tips</h3>
+                            <ul class="curriculum-list">
+                                <li>Use quick pair-shares after each tab to keep pace.</li>
+                                <li>Invite students to connect music with family routines.</li>
+                                <li>Offer a choice: short reflection or mini-performance.</li>
+                                <li>Support ELL learners with sentence starters.</li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Local Musician Spotlight</h3>
+                            <ul class="curriculum-list">
+                                <li>Feature a Guyanese artist each week (live visit, interview clip, or class research).</li>
+                                <li>Students connect the artist to community, work, or cultural traditions.</li>
+                                <li>Collect a short quote or story that explains why the music matters locally.</li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Vocabulary Bank</h3>
+                            <ul class="curriculum-list">
+                                <li>Syncopation</li>
+                                <li>Call-and-response</li>
+                                <li>Diaspora</li>
+                                <li>Enculturation</li>
+                                <li>Identity</li>
+                                <li>Ritual</li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Culture, Music, and Climate Resilience</h3>
+                            <ul class="curriculum-list">
+                                <li>How do floods, droughts, or coastal change affect festivals and music traditions?</li>
+                                <li>Which songs, rhythms, or instruments carry messages about land, rivers, and resilience?</li>
+                                <li>How do communities use music to organize, remember, and recover after climate events?</li>
+                                <li>Student task: write a short verse or rhythm plan that supports climate resilience.</li>
+                            </ul>
+                            <ul class="curriculum-links">
+                                <li><a href="worksheets/climate-resilience-worksheet.pdf">Climate Resilience Worksheet</a></li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Project Brief</h3>
+                            <p class="curriculum-text">Students create a short presentation or performance plan linking an instrument, a rhythm, a local Guyanese musician, and a community story.</p>
+                            <ul class="curriculum-links">
+                                <li><a href="worksheets/project-brief-and-rubric.pdf">Project Brief + Rubric</a></li>
+                            </ul>
+                        </div>
+                        <div class="curriculum-card">
+                            <h3>Explore with Analysis Tools</h3>
+                            <p class="curriculum-text">Use the <strong>Analyze Music tab</strong> to upload audio files and generate downloadable graphs for <strong>comparative genre analysis</strong>:</p>
+                            <ul class="curriculum-list">
+                                <li><strong>Waveform</strong> – Compare wave patterns: folk is sparse, electronic is dense</li>
+                                <li><strong>Frequency Spectrum</strong> – See which genre emphasizes bass, mid, or treble</li>
+                                <li><strong>Spectrogram</strong> – Visualize how frequency changes reveal genre texture</li>
+                                <li><strong>Energy Envelope</strong> – Compare loudness dynamics: classical swells vs. hip-hop punch</li>
+                                <li><strong>Pitch Distribution</strong> – Identify tonal centers across genres</li>
+                                <li><strong>Rhythm Onset</strong> – Analyze percussion timing in Guyanese joropo vs. reggae vs. soca</li>
+                            </ul>
+                            <p style="font-size: 0.9rem; color: #666; margin-top: 10px;"><strong>Student Activity:</strong> Upload 2–3 tracks from different genres, download side-by-side graphs, and write what the visual patterns reveal about each style. Export for comparison presentations.</p>
+                        </div>
+                    </div>
+
+                    <div class="curriculum-cta">
+                        <h3>Classroom Notes</h3>
+                        <p>Use the Instrument Explorer for research and the Rhythm Patterns tab for performance practice. The Analyze Music tab is optional for advanced classes.</p>
+                        <ul class="curriculum-links">
+                            <li><a href="worksheets/quick-lesson-plan.pdf">Quick Lesson Plan</a></li>
+                            <li><a href="worksheets/exit-ticket.pdf">Exit Ticket</a></li>
+                            <li><a href="worksheets/climate-resilience-worksheet.pdf">Climate Resilience Worksheet</a></li>
+                            <li><a href="worksheets/6-week-pacing-guide.pdf">6-Week Pacing Guide</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analyze Music Tab -->
+            <section id="analyze" class="tab-content">
+                <div class="analyze-container">
+                    <h2>Analyze Music</h2>
+                    <p class="analyze-intro">Upload an audio file or use your microphone to analyze musical characteristics in real-time.</p>
+                    
+                    <div class="analyze-controls">
+                        <div class="control-group">
+                            <h3>Audio Input</h3>
+                            <div class="input-buttons">
+                                <button class="control-btn" id="uploadAudioBtn">Upload Audio File</button>
+                                <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+                                <button class="control-btn" id="stopAudioBtn" style="display: none;">Stop Audio</button>
+                                <button class="control-btn" id="microphoneBtn">Start Microphone</button>
+                                <button class="control-btn" id="stopMicBtn" style="display: none;">Stop Microphone</button>
+                            </div>
+                            <div class="analysis-status" id="analysisStatus"></div>
+                        </div>
+                    </div>
+
+                    <div class="analyze-visualizers">
+                        <div class="visualizer-container">
+                            <div class="visualizer-header">
+                                <h3>Waveform</h3>
+                                <button class="download-btn" id="downloadWaveformBtn" title="Download waveform as PNG">Download</button>
+                            </div>
+                            <canvas id="waveformCanvas" width="800" height="150"></canvas>
+                        </div>
+                        
+                        <div class="visualizer-container">
+                            <div class="visualizer-header">
+                                <h3>Frequency Spectrum</h3>
+                                <button class="download-btn" id="downloadSpectrumBtn" title="Download spectrum as PNG">Download</button>
+                            </div>
+                            <canvas id="frequencyCanvas" width="800" height="150"></canvas>
+                        </div>
+                        
+                        <div class="visualizer-container">
+                            <div class="visualizer-header">
+                                <h3>Spectrogram</h3>
+                                <button class="download-btn" id="downloadSpectrogramBtn" title="Download spectrogram as PNG">Download</button>
+                            </div>
+                            <canvas id="spectrogramCanvas" width="800" height="200"></canvas>
+                        </div>
+                        
+                        <div class="visualizer-container">
+                            <div class="visualizer-header">
+                                <h3>Energy Envelope</h3>
+                                <button class="download-btn" id="downloadEnergyBtn" title="Download energy envelope as PNG">Download</button>
+                            </div>
+                            <canvas id="energyCanvas" width="800" height="150"></canvas>
+                        </div>
+                        
+                        <div class="visualizer-container">
+                            <div class="visualizer-header">
+                                <h3>Pitch Distribution</h3>
+                                <button class="download-btn" id="downloadPitchBtn" title="Download pitch distribution as PNG">Download</button>
+                            </div>
+                            <canvas id="pitchCanvas" width="800" height="150"></canvas>
+                        </div>
+                        
+                    </div>
+
+                    <div class="analyze-metrics">
+                        <div class="metric-card">
+                            <div class="metric-label">Tempo (BPM)</div>
+                            <div class="metric-value" id="tempoMetric">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Key</div>
+                            <div class="metric-value" id="keyMetric">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Loudness (LUFS)</div>
+                            <div class="metric-value" id="loudnessMetric">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Frequency (Hz)</div>
+                            <div class="metric-value" id="frequencyMetric">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Energy</div>
+                            <div class="metric-value" id="energyMetric">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">ZCR</div>
+                            <div class="metric-value" id="zcrMetric">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">MFCC</div>
+                            <div class="metric-value" id="mfccMetric">--</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Duration (s)</div>
+                            <div class="metric-value" id="durationMetric">--</div>
+                        </div>
+                    </div>
+
+                    <div class="rhythmic-analysis">
+                        <div class="rhythmic-header">
+                            <h3>Rhythmic Analysis</h3>
+                            <p class="analyze-intro">Focused rhythm tracking for complex styles like joropo, highlighting meter, swing, and syncopation.</p>
+                        </div>
+                        <div class="rhythmic-grid">
+                            <div class="metric-card">
+                                <div class="metric-label">Estimated Meter</div>
+                                <div class="metric-value" id="meterMetric">--</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Pulse Clarity</div>
+                                <div class="metric-value" id="pulseClarityMetric">--</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Swing Ratio</div>
+                                <div class="metric-value" id="swingMetric">--</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-label">Syncopation</div>
+                                <div class="metric-value" id="syncopationMetric">--</div>
+                            </div>
+                        </div>
+                        <div class="rhythmic-visual">
+                            <div class="visualizer-header">
+                                <h3>Onset Envelope</h3>
+                                <button class="download-btn" id="downloadRhythmBtn" title="Download onset envelope as PNG">Download</button>
+                            </div>
+                            <canvas id="rhythmAnalysisCanvas" width="800" height="150"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h3>Analysis Metrics Explained</h3>
+                        <div class="info-content">
+                            <div class="info-item">
+                                <strong>Tempo (BPM):</strong> Beats per minute detected through energy peak analysis and beat tracking.
+                            </div>
+                            <div class="info-item">
+                                <strong>Key:</strong> Detected musical key based on pitch class distribution analysis.
+                            </div>
+                            <div class="info-item">
+                                <strong>Loudness (LUFS):</strong> Integrated loudness in Loudness Units relative to Full Scale, standard for audio mastering.
+                            </div>
+                            <div class="info-item">
+                                <strong>Frequency (Hz):</strong> Dominant frequency component of the audio signal.
+                            </div>
+                            <div class="info-item">
+                                <strong>Energy:</strong> Overall energy distribution in the audio signal expressed as percentage.
+                            </div>
+                            <div class="info-item">
+                                <strong>ZCR (Zero Crossing Rate):</strong> How often the waveform crosses zero. High values indicate noise or percussive sounds.
+                            </div>
+                            <div class="info-item">
+                                <strong>MFCC (Mel-Frequency Cepstral Coefficients):</strong> Timbral characteristics and spectral envelope that define instrument tone color.
+                            </div>
+                            <div class="info-item">
+                                <strong>Duration:</strong> Total length of the audio in seconds.
+                            </div>
+                            <div class="info-item">
+                                <strong>Estimated Meter:</strong> Most likely time signature based on onset grouping and accent strength.
+                            </div>
+                            <div class="info-item">
+                                <strong>Pulse Clarity:</strong> How consistently the beat repeats, derived from onset autocorrelation.
+                            </div>
+                            <div class="info-item">
+                                <strong>Swing Ratio:</strong> Relationship between long and short subdivisions (e.g., 2.0:1 for strong swing).
+                            </div>
+                            <div class="info-item">
+                                <strong>Syncopation:</strong> Energy on off-beats compared to downbeats; higher values indicate more syncopation.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Rhythm Patterns Tab -->
+            <section id="rhythms" class="tab-content">
+                <h2>Interactive Rhythm Patterns</h2>
+                <div class="rhythm-studio">
+                    <div class="rhythm-selector">
+                        <h3>Select a Rhythm Pattern</h3>
+                        <div class="rhythm-buttons" id="rhythmButtons">
+                            <!-- Dynamically loaded -->
+                        </div>
+                    </div>
+                    <div class="rhythm-visualizer">
+                        <canvas id="rhythmCanvas" width="800" height="200"></canvas>
+                    </div>
+                    <div class="rhythm-controls">
+                        <button id="playRhythm" class="control-btn">Play</button>
+                        <button id="stopRhythm" class="control-btn">Stop</button>
+                        <label>Tempo: <input type="range" id="tempoSlider" min="60" max="180" value="120"> <span id="tempoValue">120</span> BPM</label>
+                    </div>
+                    <div class="rhythm-info" id="rhythmInfo">
+                        <h3>Pattern Information</h3>
+                        <p id="rhythmDescription"></p>
+                        <p class="rhythm-audio-status" id="rhythmAudioStatus"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quiz Game Tab -->
+            <section id="quiz" class="tab-content">
+                <div class="quiz-container">
+                    <h2>Test Your Knowledge!</h2>
+                    <p class="quiz-intro">Challenge yourself with questions about instruments and musical traditions.</p>
+                    
+                    <div class="quiz-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Score:</span>
+                            <span class="stat-value" id="quizScore">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Correct:</span>
+                            <span class="stat-value" id="correctAnswers">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Total:</span>
+                            <span class="stat-value" id="totalQuestions">0</span>
+                        </div>
+                    </div>
+
+                    <div class="quiz-content" id="quizContent">
+                        <div class="question-card" id="questionCard" style="display: none;">
+                            <h3 id="questionText"></h3>
+                            <div class="answer-options" id="answerOptions"></div>
+                            <div class="quiz-feedback" id="quizFeedback" style="display: none;"></div>
+                            <button class="control-btn" id="nextQuestion" style="display: none;">Next Question</button>
+                        </div>
+                    </div>
+
+                    <div class="quiz-controls">
+                        <button class="control-btn" id="startQuiz">Start Quiz</button>
+                        <button class="control-btn" id="resetQuiz" style="display: none;">New Quiz</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Compare Tab -->
+            <section id="compare" class="tab-content">
+                <div class="compare-container">
+                    <h2>Compare Instruments</h2>
+                    <p class="compare-intro">Select instruments from the Explorer to compare their features side by side.</p>
+                    
+                    <div class="compare-grid" id="compareGrid">
+                        <div class="compare-empty">No instruments selected for comparison. Add instruments from the Explorer tab.</div>
+                    </div>
+                    
+                    <button class="control-btn" id="clearComparison">Clear All</button>
+                </div>
+            </section>
+
+            <!-- Favorites Tab -->
+            <section id="favorites" class="tab-content">
+                <div class="favorites-container">
+                    <h2>Your Favorite Instruments</h2>
+                    <p class="favorites-intro">Your personally curated collection of instruments.</p>
+                    
+                    <div class="instruments-grid" id="favoritesGrid">
+                        <div class="favorites-empty">No favorites yet. Add instruments from the Explorer tab!</div>
+                    </div>
+                    
+                    <button class="control-btn" id="clearFavorites">Clear All Favorites</button>
+                </div>
+            </section>
+
+            <!-- About Tab -->
+            <section id="about" class="tab-content">
+                <div class="about-content">
+                    <h2>About Ethnomusic Lab GY</h2>
+                    <p>
+                        Ethnomusic Lab GY is an interactive educational platform dedicated to exploring and preserving 
+                        the rich musical heritage of Guyana and the diverse cultural traditions that have influenced it.
+                    </p>
+                    <p>
+                        Guyana's musical landscape reflects its multicultural society, combining influences from:
+                    </p>
+                    <ul>
+                        <li><strong>Indigenous peoples</strong> - The original inhabitants with their unique musical traditions</li>
+                        <li><strong>African heritage</strong> - Brought by enslaved peoples, contributing drums and rhythmic patterns</li>
+                        <li><strong>Indian culture</strong> - Indo-Guyanese classical and folk music traditions</li>
+                        <li><strong>European influences</strong> - Colonial era introductions</li>
+                        <li><strong>Caribbean connections</strong> - Shared regional musical forms</li>
+                    </ul>
+                    <h3>Mission</h3>
+                    <p>
+                        Our mission is to educate, preserve, and celebrate the ethnomusicological diversity of Guyana 
+                        and the world through interactive learning experiences.
+                    </p>
+                    <h3>Features</h3>
+                    <ul>
+                        <li>Comprehensive instrument database</li>
+                        <li>Cultural and historical context for each instrument</li>
+                        <li>Interactive rhythm pattern exploration</li>
+                        <li>Regional music categorization</li>
+                        <li>Advanced music analysis with Essentia.js</li>
+                        <li>Educational resources for students and enthusiasts</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- Instrument Detail Modal (Outside main so it appears on all tabs) -->
+        <div class="instrument-detail" id="instrumentDetail" style="display: none;">
+            <button class="close-btn" id="closeDetail">×</button>
+            <div class="detail-actions">
+                <button class="action-btn" id="addToFavorites">Add to Favorites</button>
+                <button class="action-btn" id="addToCompare">Add to Compare</button>
+            </div>
+            <div class="detail-content">
+                <img id="detailImage" src="" alt="">
+                <h2 id="detailName"></h2>
+                <p class="detail-region" id="detailRegion"></p>
+                <p class="detail-description" id="detailDescription"></p>
+                
+                <div class="cultural-context">
+                    <h3>Cultural Significance</h3>
+                    <p id="detailCultural"></p>
+                </div>
+
+                <div class="playing-technique">
+                    <h3>Playing Technique</h3>
+                    <p id="detailTechnique"></p>
+                </div>
+
+                <div class="materials">
+                    <h3>Materials &amp; Construction</h3>
+                    <p id="detailMaterials"></p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Copyright 2026 Ethnomusic Lab GY | Preserving Musical Heritage</p>
+        </footer>
+    </div>
+
+    <script src="script.js?v=25"></script>
+    <script>
+    // Inline quiz fix - runs immediately
+    console.log('Inline quiz fix loading...');
+    setTimeout(function() {
+        if (window.quizQuestions) {
+            window.quizQuestions.forEach(function(q) {
+                if (q.question && q.question.toLowerCase().includes('parang')) {
+                    q.question = "What is Masquerade music in Guyana?";
+                }
+            });
+        }
+        if (window.shuffledQuestions) {
+            window.shuffledQuestions.forEach(function(q) {
+                if (q.question && q.question.toLowerCase().includes('parang')) {
+                    q.question = "What is Masquerade music in Guyana?";
+                }
+            });
+            if (window.loadQuestion) window.loadQuestion();
+        }
+        console.log('Inline quiz fix applied!');
+    }, 200);
+    </script>
+</body>
+</html>
