@@ -3239,7 +3239,7 @@ function setupMusicAnalysis() {
 // Console welcome message
 
 // Console welcome message
-console.log('%c🎵 Welcome to Ethnomusic Lab GY! 🎵', 'color: #2c5f2d; font-size: 20px; font-weight: bold;');
+console.log('%c🎵 Welcome to EthnoMusic Lab GY! 🎵', 'color: #2c5f2d; font-size: 20px; font-weight: bold;');
 console.log('%cExplore the rich musical heritage of Guyana and the world!', 'color: #fdc500; font-size: 14px;');
 console.log('%cNew Features: Quiz Game, Favorites, Comparison Tool, Audio Synthesis!', 'color: #ce1126; font-size: 12px;');
 

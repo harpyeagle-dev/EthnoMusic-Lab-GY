@@ -1,11 +1,13 @@
-# Decoding the Baboon Dance: A Curriculum in Digital Humanities and Computational Ethnomusicology
+# EthnoMusic Lab GY
+
+## Decoding the Baboon Dance: A Curriculum in Digital Humanities and Computational Ethnomusicology
 
 **Author:** Rohan Sagar  
 **Date:** June 15, 2025
 
 ## Overview
 
-This digital curriculum explores the intersection of ethnomusicology, digital humanities, and computational analysis through the lens of the Baboon Dance—a traditional cultural practice from Guyana. Students will learn to combine cultural understanding with cutting-edge computational tools to analyze, preserve, and reimagine Indigenous musical traditions.
+This EthnoMusic Lab GY curriculum explores the intersection of ethnomusicology, digital humanities, and computational analysis through the lens of the Baboon Dance—a traditional cultural practice from Guyana. Students will learn to combine cultural understanding with cutting-edge computational tools to analyze, preserve, and reimagine Indigenous musical traditions.
 
 ## Curriculum Goals
 
