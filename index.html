@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EthnoMusic Lab GY - World Music Explorer</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <link rel="stylesheet" href="styles.css?v=4">
 </head>
 <body>
@@ -28,6 +29,7 @@
             <button class="tab-btn active" data-tab="explorer">Instrument Explorer</button>
             <button class="tab-btn" data-tab="regions">Regional Music Curriculum</button>
             <button class="tab-btn" data-tab="rhythms">Rhythm Patterns</button>
+            <button class="tab-btn" data-tab="map">Rhythm Map</button>
             <button class="tab-btn" data-tab="analyze">Analyze Music</button>
             <button class="tab-btn" data-tab="quiz">Quiz Game</button>
             <button class="tab-btn" data-tab="compare">Compare</button>
@@ -426,6 +428,33 @@
                 </div>
             </section>
 
+            <!-- Rhythm Map Tab -->
+            <section id="map" class="tab-content">
+                <div class="rhythm-map-layout">
+                    <div class="rhythm-map-stage" id="rhythmMapStage">
+                        <div id="rhythmLeafletMap" class="rhythm-map-canvas" aria-label="Map of Guyana rhythm geolocations">Map loading...</div>
+                    </div>
+                    <aside class="rhythm-map-panel" id="rhythmMapPanel">
+                        <h2>Guyana Rhythm Geolocations</h2>
+                        <p class="map-intro">Click a marker on the map to explore where rhythms are performed.</p>
+                        <div class="map-card">
+                            <p><strong>Rhythm:</strong> <span id="mapRhythmName">Select a marker</span></p>
+                            <p><strong>Location:</strong> <span id="mapRhythmLocation">—</span></p>
+                            <p><strong>Region:</strong> <span id="mapRhythmRegion">—</span></p>
+                            <div class="practitioner-profile" id="mapPractitionerProfile">
+                                <img id="mapPractitionerPhoto" src="assets/practitioner-default.svg" alt="Practitioner photo" class="practitioner-photo">
+                                <div class="practitioner-meta">
+                                    <p><strong>Practitioners:</strong> <span id="mapPractitionerName">—</span></p>
+                                    <p id="mapPractitionerBio" class="practitioner-bio">Select a marker to view details on practitioners.</p>
+                                </div>
+                            </div>
+                            <p id="mapRhythmDescription">Select any map point to view cultural and rhythm context.</p>
+                            <button class="control-btn" id="openMapRhythm" disabled>Open in Rhythm Patterns</button>
+                        </div>
+                    </aside>
+                </div>
+            </section>
+
             <!-- Quiz Game Tab -->
             <section id="quiz" class="tab-content">
                 <div class="quiz-container">
@@ -562,7 +591,8 @@
         </footer>
     </div>
 
-    <script src="script.js?v=25"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="script.js?v=26"></script>
     <script>
     // Inline quiz fix - runs immediately
     console.log('Inline quiz fix loading...');

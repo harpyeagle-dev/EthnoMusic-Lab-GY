@@ -370,11 +370,106 @@ const rhythmPatterns = [
     }
 ];
 
+const rhythmGeoLocations = [
+    {
+        rhythmId: 12,
+        place: 'Georgetown',
+        region: 'Demerara-Mahaica',
+        lat: 6.8013,
+        lon: -58.1551,
+        notes: 'Masquerade bands perform during holiday parades and community celebrations.',
+        practitionerName: 'A. Persaud',
+        practitionerBio: 'Community bandleader supporting masquerade presentations across Georgetown.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    },
+    {
+        rhythmId: 11,
+        place: 'Santa Rosa, Moruca',
+        region: 'Barima-Waini',
+        lat: 7.9962,
+        lon: -59.119,
+        notes: 'Lokono Banchikilli performance center and cultural exchange site.',
+        practitionerName: 'The Mariaba Players',
+        practitionerBio: 'Lokono practitioner ensemble that documented and performed Banchikilli traditions.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    },
+    {
+        rhythmId: 2,
+        place: 'New Amsterdam',
+        region: 'East Berbice-Corentyne',
+        lat: 6.2479,
+        lon: -57.5171,
+        notes: 'Calypso and related festival rhythms are active in community events.',
+        practitionerName: 'M. Alexander',
+        practitionerBio: 'Festival performer active in calypso and masquerade community events.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    },
+    {
+        rhythmId: 1,
+        place: 'Skeldon',
+        region: 'East Berbice-Corentyne',
+        lat: 5.886,
+        lon: -57.1352,
+        notes: 'Chutney rhythms are common in Indo-Guyanese celebrations.',
+        practitionerName: 'S. Ramkarran',
+        practitionerBio: 'Local chutney vocalist and rhythm accompanist at cultural gatherings.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    },
+    {
+        rhythmId: 4,
+        place: 'Linden',
+        region: 'Upper Demerara-Upper Berbice',
+        lat: 6.0081,
+        lon: -58.3071,
+        notes: 'Soca culture appears in regional festivals and youth events.',
+        practitionerName: 'K. Glasgow',
+        practitionerBio: 'Youth soca choreographer and percussion facilitator in regional festivals.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    },
+    {
+        rhythmId: 7,
+        place: 'Anna Regina',
+        region: 'Pomeroon-Supenaam',
+        lat: 7.2642,
+        lon: -58.5077,
+        notes: 'Bhangra-inspired beat patterns are used in Indo-Caribbean festivities.',
+        practitionerName: 'P. Singh',
+        practitionerBio: 'Indo-Caribbean music teacher introducing Bhangra beat patterns in school events.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    },
+    {
+        rhythmId: 9,
+        place: 'Mahdia',
+        region: 'Potaro-Siparuni',
+        lat: 5.2667,
+        lon: -59.15,
+        notes: 'Son-clave pulse appears in modern fusion bands and dance spaces.',
+        practitionerName: 'L. Roberts',
+        practitionerBio: 'Fusion percussionist integrating son-clave phrasing into contemporary sets.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    },
+    {
+        rhythmId: 5,
+        place: 'Buxton',
+        region: 'Demerara-Mahaica',
+        lat: 6.7656,
+        lon: -58.0404,
+        notes: 'African polyrhythm traditions are shared through village drumming events.',
+        practitionerName: "Handel 'Brother Andy' Neptune",
+        practitionerBio: 'Djembe practitioner supporting African social traditions in Buxton and Guyana.',
+        practitionerPhoto: 'assets/practitioner-default.svg'
+    }
+];
+
 // State Management
 let currentInstruments = [...instrumentsDatabase];
 let selectedRhythm = null;
 let rhythmInterval = null;
 let currentBeat = 0;
+let rhythmLeafletMap = null;
+let rhythmLeafletMarkers = [];
+let rhythmMapInitialized = false;
+let rhythmMapPanelBound = false;
 
 // DOM Elements
 const instrumentsGrid = document.getElementById('instrumentsGrid');
@@ -391,6 +486,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderInstruments(currentInstruments);
     setupLocalNotice();
     setupEventListeners();
+    setupRhythmMapPlaceholder();
     setupRhythmStudio();
     setupQuizControls();
     setupFavoritesAndComparison();
@@ -476,6 +572,123 @@ function switchTab(tabName) {
             content.classList.add('active');
         }
     });
+
+    if (tabName === 'map') {
+        if (!rhythmMapInitialized) {
+            setupRhythmGeoMap();
+        }
+        requestAnimationFrame(() => {
+            resizeRhythmGeoMap();
+        });
+    }
+}
+
+function setupRhythmMapPlaceholder() {
+    const mapEl = document.getElementById('rhythmLeafletMap');
+    if (!mapEl) return;
+    if (!mapEl.textContent.trim()) {
+        mapEl.textContent = 'Map loading...';
+    }
+}
+
+function setupRhythmGeoMap() {
+    const mapEl = document.getElementById('rhythmLeafletMap');
+    if (!mapEl || rhythmMapInitialized) return;
+
+    bindRhythmMapPanelAction();
+
+    if (typeof window.L === 'undefined') {
+        mapEl.innerHTML = '<div class="loading">Map library failed to load.</div>';
+        rhythmMapInitialized = true;
+        return;
+    }
+
+    rhythmLeafletMap = L.map('rhythmLeafletMap', {
+        zoomControl: true,
+        scrollWheelZoom: true
+    }).setView([5.2, -59.0], 6);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(rhythmLeafletMap);
+
+    rhythmGeoLocations.forEach((location) => {
+        const rhythm = rhythmPatterns.find((item) => item.id === location.rhythmId);
+        if (!rhythm) return;
+
+        const marker = L.marker([location.lat, location.lon]).addTo(rhythmLeafletMap);
+        marker.bindTooltip(location.place, {
+            permanent: true,
+            direction: 'top',
+            offset: [0, -12],
+            className: 'map-place-tooltip'
+        });
+        marker.bindPopup(`<strong>${location.place}</strong><br>${location.region}<br><em>${rhythm.name}</em>`);
+        marker.on('click', () => {
+            showRhythmMapSelection(rhythm.id, location);
+        });
+
+        rhythmLeafletMarkers.push(marker);
+    });
+
+    rhythmMapInitialized = true;
+    requestAnimationFrame(() => resizeRhythmGeoMap());
+}
+
+function bindRhythmMapPanelAction() {
+    if (rhythmMapPanelBound) return;
+
+    const openMapRhythmBtn = document.getElementById('openMapRhythm');
+    if (!openMapRhythmBtn) return;
+
+    openMapRhythmBtn.addEventListener('click', () => {
+        const rhythmId = parseInt(openMapRhythmBtn.dataset.rhythmId || '', 10);
+        if (!rhythmId) return;
+        switchTab('rhythms');
+
+        const rhythmButton = document.querySelector(`#rhythmButtons .rhythm-btn[data-id="${rhythmId}"]`);
+        if (rhythmButton) {
+            rhythmButton.click();
+        }
+    });
+
+    rhythmMapPanelBound = true;
+}
+
+function showRhythmMapSelection(rhythmId, locationMeta) {
+    const rhythm = rhythmPatterns.find((item) => item.id === rhythmId);
+    if (!rhythm) return;
+
+    const nameEl = document.getElementById('mapRhythmName');
+    const locationEl = document.getElementById('mapRhythmLocation');
+    const regionEl = document.getElementById('mapRhythmRegion');
+    const practitionerNameEl = document.getElementById('mapPractitionerName');
+    const practitionerBioEl = document.getElementById('mapPractitionerBio');
+    const practitionerPhotoEl = document.getElementById('mapPractitionerPhoto');
+    const descEl = document.getElementById('mapRhythmDescription');
+    const openBtn = document.getElementById('openMapRhythm');
+
+    if (nameEl) nameEl.textContent = rhythm.name;
+    if (locationEl) locationEl.textContent = locationMeta.place || '—';
+    if (regionEl) regionEl.textContent = locationMeta.region || rhythm.region;
+    if (practitionerNameEl) practitionerNameEl.textContent = locationMeta.practitionerName || 'Community Practitioner';
+    if (practitionerBioEl) practitionerBioEl.textContent = locationMeta.practitionerBio || 'Local performer/practitioner connected to this rhythm tradition.';
+    if (practitionerPhotoEl) {
+        practitionerPhotoEl.src = locationMeta.practitionerPhoto || 'assets/practitioner-default.svg';
+        practitionerPhotoEl.alt = `${locationMeta.practitionerName || 'Community Practitioner'} photo`;
+    }
+    if (descEl) descEl.textContent = locationMeta.notes || rhythm.description;
+
+    if (openBtn) {
+        openBtn.disabled = false;
+        openBtn.dataset.rhythmId = String(rhythm.id);
+    }
+}
+
+function resizeRhythmGeoMap() {
+    if (!rhythmLeafletMap || !rhythmMapInitialized) return;
+    rhythmLeafletMap.invalidateSize();
 }
 
 // Render Instruments
