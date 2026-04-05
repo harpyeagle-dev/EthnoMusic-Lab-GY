@@ -1,0 +1,11 @@
+{
+  "columns": {
+    "title": "dcterms:title",
+    "creator": "dcterms:creator",
+    "rights": "dcterms:rights",
+    "source": "dcterms:source",
+    "description": "dcterms:description",
+    "artifact_label": "local:artifact_label",
+    "file": "file"
+  }
+}

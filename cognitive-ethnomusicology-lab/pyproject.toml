@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cognitive-ethnomusicology-lab"
+version = "0.1.0"
+description = "Starter lab toolkit for cognitive ethnomusicology workflows"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "Lab Team" }]
+dependencies = [
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "scipy>=1.11",
+  "librosa>=0.10",
+  "scikit-learn>=1.5",
+  "soundfile>=0.12",
+  "pyyaml>=6.0",
+  "click>=8.1",
+  "matplotlib>=3.8",
+  "streamlit>=1.38",
+  "plotly>=5.24"
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.5",
+  "ipykernel>=6.29"
+]
+
+[project.scripts]
+cog-ethno-lab = "cog_ethno_lab.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
