@@ -74,6 +74,8 @@ cog-ethno-lab run-pipeline
 - Use [docs/fieldwork_protocol.md](docs/fieldwork_protocol.md) to standardize collection and consent procedures.
 - Use [docs/consent_checklist.md](docs/consent_checklist.md) during participant-facing sessions.
 - Use [docs/data_dictionary.md](docs/data_dictionary.md) to keep coding decisions and column meanings consistent.
+- Use [docs/user_questionnaire.md](docs/user_questionnaire.md) for participant post-session survey prompts.
+- Capture questionnaire outputs in `data/templates/user_questionnaire_responses.csv`.
 
 ## Additional Commands
 

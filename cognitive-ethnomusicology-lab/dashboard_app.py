@@ -55,6 +55,7 @@ clusters_path = DATA_PROCESSED / "rhythm_clusters.csv"
 summary_path = DATA_PROCESSED / "rhythm_summary.json"
 transcript_batch_path = DATA_PROCESSED / "transcript_batch_summary.json"
 transcripts_dir = DATA_RAW / "transcripts"
+questionnaire_path = ROOT / "data" / "templates" / "user_questionnaire_responses.csv"
 
 
 def load_csv(path: Path) -> pd.DataFrame | None:
@@ -68,6 +69,76 @@ def load_json(path: Path) -> dict | list | None:
         return None
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def _normalize_to_100(series: pd.Series) -> pd.Series:
+    numeric = pd.to_numeric(series, errors="coerce")
+    if numeric.dropna().empty:
+        return numeric
+    min_val = float(numeric.min())
+    max_val = float(numeric.max())
+    if max_val - min_val == 0:
+        return pd.Series(np.where(numeric.notna(), 50.0, np.nan), index=numeric.index)
+    return ((numeric - min_val) / (max_val - min_val) * 100.0).round(2)
+
+
+def build_human_machine_comparison(
+    questionnaire_df: pd.DataFrame,
+    machine_df: pd.DataFrame,
+    group_column: str,
+) -> pd.DataFrame:
+    human_cols = [
+        "engagement_q1",
+        "anticipation_q2",
+        "entrainment_q3",
+        "social_connection_q4",
+        "emotion_q5",
+        "familiarity_q6",
+        "community_values_q7",
+        "timekeeping_ease_c1",
+        "tempo_stability_c2",
+    ]
+    machine_cols = [
+        "tempo_bpm",
+        "onset_strength_mean",
+        "spectral_centroid_mean",
+        "zero_crossing_rate_mean",
+        "duration_sec",
+    ]
+
+    available_human = [col for col in human_cols if col in questionnaire_df.columns]
+    available_machine = [col for col in machine_cols if col in machine_df.columns]
+    if not available_human or not available_machine:
+        return pd.DataFrame()
+
+    human_ready = questionnaire_df.copy()
+    machine_ready = machine_df.copy()
+    human_ready[group_column] = human_ready[group_column].fillna("Unassigned").replace("", "Unassigned")
+    machine_ready[group_column] = machine_ready[group_column].fillna("Unassigned").replace("", "Unassigned")
+
+    human_grouped = human_ready.groupby(group_column)[available_human].mean(numeric_only=True).reset_index()
+    machine_grouped = machine_ready.groupby(group_column)[available_machine].mean(numeric_only=True).reset_index()
+
+    for col in available_human:
+        human_grouped[f"human_norm_{col}"] = _normalize_to_100(human_grouped[col])
+    for col in available_machine:
+        machine_grouped[f"machine_norm_{col}"] = _normalize_to_100(machine_grouped[col])
+
+    human_grouped["human_composite"] = human_grouped[
+        [f"human_norm_{col}" for col in available_human]
+    ].mean(axis=1, skipna=True)
+    machine_grouped["machine_composite"] = machine_grouped[
+        [f"machine_norm_{col}" for col in available_machine]
+    ].mean(axis=1, skipna=True)
+
+    merged = pd.merge(
+        human_grouped[[group_column, "human_composite"]],
+        machine_grouped[[group_column, "machine_composite"]],
+        on=group_column,
+        how="inner",
+    )
+    merged["alignment_gap"] = (merged["human_composite"] - merged["machine_composite"]).abs().round(2)
+    return merged.sort_values("alignment_gap")
 
 
 def latest_export_folder() -> Path | None:
@@ -215,6 +286,7 @@ transcript_files = sorted(transcripts_dir.glob("*.csv")) if transcripts_dir.exis
 summary_data = load_json(summary_path)
 transcript_batch_data = load_json(transcript_batch_path)
 latest_export = latest_export_folder()
+questionnaire_df = load_csv(questionnaire_path)
 
 st.markdown(
     """
@@ -336,7 +408,14 @@ col4.metric("Export Packages", len([p for p in EXPORTS_DIR.glob('lab_report_*') 
 
 st.divider()
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(["Overview", "Recordings", "Rhythm Features", "Transcripts", "Exports"])
+tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    "Overview",
+    "Recordings",
+    "Rhythm Features",
+    "Transcripts",
+    "Exports",
+    "Human vs Machine",
+])
 
 with tab1:
     left, right = st.columns([1.2, 1])
@@ -591,3 +670,81 @@ with tab5:
             st.dataframe(pd.read_csv(import_csv), use_container_width=True)
     else:
         st.info("No export packages found yet. Run: cog-ethno-lab export-report-package --root . --output-dir exports")
+
+with tab6:
+    st.subheader("Human vs Machine Visual Comparison")
+    st.caption("Compares participant questionnaire responses (human) against audio feature summaries (machine).")
+
+    if questionnaire_df is None:
+        st.warning("No questionnaire file found. Add data/templates/user_questionnaire_responses.csv")
+    elif features_df is None:
+        st.warning("No machine features found. Run: cog-ethno-lab run-pipeline")
+    else:
+        human_group_col = "community" if "community" in questionnaire_df.columns else None
+        machine_group_col = "community" if "community" in features_df.columns else None
+
+        if not human_group_col:
+            st.warning("Questionnaire data needs a 'community' column for grouped comparison.")
+        elif not machine_group_col:
+            st.warning("Feature data needs a 'community' column for grouped comparison.")
+        else:
+            comparison_df = build_human_machine_comparison(questionnaire_df, features_df, group_column="community")
+            if comparison_df.empty:
+                st.info("Not enough overlapping numeric fields yet. Add questionnaire ratings (1-5) and rerun.")
+            else:
+                c_left, c_right = st.columns(2)
+                with c_left:
+                    st.markdown("**Human Composite by Community**")
+                    human_fig = px.bar(
+                        comparison_df,
+                        x="community",
+                        y="human_composite",
+                        color="community",
+                        title="Human Perception Composite (0-100)",
+                    )
+                    human_fig.update_layout(showlegend=False)
+                    st.plotly_chart(human_fig, use_container_width=True)
+
+                with c_right:
+                    st.markdown("**Machine Composite by Community**")
+                    machine_fig = px.bar(
+                        comparison_df,
+                        x="community",
+                        y="machine_composite",
+                        color="community",
+                        title="Machine Signal Composite (0-100)",
+                    )
+                    machine_fig.update_layout(showlegend=False)
+                    st.plotly_chart(machine_fig, use_container_width=True)
+
+                st.markdown("**Alignment Scatter: Human vs Machine**")
+                scatter = px.scatter(
+                    comparison_df,
+                    x="human_composite",
+                    y="machine_composite",
+                    color="community",
+                    size="alignment_gap",
+                    hover_data=["alignment_gap"],
+                    title="Community-level alignment between participant experience and machine features",
+                )
+                scatter.add_shape(
+                    type="line",
+                    x0=0,
+                    y0=0,
+                    x1=100,
+                    y1=100,
+                    line={"dash": "dash", "color": "gray"},
+                )
+                scatter.update_xaxes(range=[0, 100], title="Human Composite")
+                scatter.update_yaxes(range=[0, 100], title="Machine Composite")
+                st.plotly_chart(scatter, use_container_width=True)
+
+                st.markdown("**Alignment Table**")
+                st.dataframe(comparison_df, use_container_width=True)
+                st.download_button(
+                    "Download Human vs Machine Comparison CSV",
+                    data=comparison_df.to_csv(index=False),
+                    file_name="human_machine_comparison.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                )
