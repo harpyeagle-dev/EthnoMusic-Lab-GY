@@ -106,6 +106,11 @@ cog-ethno-lab generate-omeka-import-csv --root .
 cog-ethno-lab generate-omeka-import-csv --root . --profile-json data/templates/omeka_field_profile.example.json
 ```
 
+Human-vs-machine embed mode (clean iframe panel):
+```text
+https://ethnomusiclab-gy.streamlit.app/?panel=human-machine
+```
+
 Each export package includes:
 - `REPORT_SUMMARY.json`
 - `OMEKA_MANIFEST.json` (Omeka-ready metadata scaffold)

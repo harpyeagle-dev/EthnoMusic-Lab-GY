@@ -141,6 +141,90 @@ def build_human_machine_comparison(
     return merged.sort_values("alignment_gap")
 
 
+def render_human_machine_section(questionnaire_df: pd.DataFrame | None, features_df: pd.DataFrame | None) -> None:
+    st.subheader("Human vs Machine Visual Comparison")
+    st.caption("Compares participant questionnaire responses (human) against audio feature summaries (machine).")
+
+    if questionnaire_df is None:
+        st.warning("No questionnaire file found. Add data/templates/user_questionnaire_responses.csv")
+        return
+    if features_df is None:
+        st.warning("No machine features found. Run: cog-ethno-lab run-pipeline")
+        return
+
+    human_group_col = "community" if "community" in questionnaire_df.columns else None
+    machine_group_col = "community" if "community" in features_df.columns else None
+
+    if not human_group_col:
+        st.warning("Questionnaire data needs a 'community' column for grouped comparison.")
+        return
+    if not machine_group_col:
+        st.warning("Feature data needs a 'community' column for grouped comparison.")
+        return
+
+    comparison_df = build_human_machine_comparison(questionnaire_df, features_df, group_column="community")
+    if comparison_df.empty:
+        st.info("Not enough overlapping numeric fields yet. Add questionnaire ratings (1-5) and rerun.")
+        return
+
+    c_left, c_right = st.columns(2)
+    with c_left:
+        st.markdown("**Human Composite by Community**")
+        human_fig = px.bar(
+            comparison_df,
+            x="community",
+            y="human_composite",
+            color="community",
+            title="Human Perception Composite (0-100)",
+        )
+        human_fig.update_layout(showlegend=False)
+        st.plotly_chart(human_fig, use_container_width=True)
+
+    with c_right:
+        st.markdown("**Machine Composite by Community**")
+        machine_fig = px.bar(
+            comparison_df,
+            x="community",
+            y="machine_composite",
+            color="community",
+            title="Machine Signal Composite (0-100)",
+        )
+        machine_fig.update_layout(showlegend=False)
+        st.plotly_chart(machine_fig, use_container_width=True)
+
+    st.markdown("**Alignment Scatter: Human vs Machine**")
+    scatter = px.scatter(
+        comparison_df,
+        x="human_composite",
+        y="machine_composite",
+        color="community",
+        size="alignment_gap",
+        hover_data=["alignment_gap"],
+        title="Community-level alignment between participant experience and machine features",
+    )
+    scatter.add_shape(
+        type="line",
+        x0=0,
+        y0=0,
+        x1=100,
+        y1=100,
+        line={"dash": "dash", "color": "gray"},
+    )
+    scatter.update_xaxes(range=[0, 100], title="Human Composite")
+    scatter.update_yaxes(range=[0, 100], title="Machine Composite")
+    st.plotly_chart(scatter, use_container_width=True)
+
+    st.markdown("**Alignment Table**")
+    st.dataframe(comparison_df, use_container_width=True)
+    st.download_button(
+        "Download Human vs Machine Comparison CSV",
+        data=comparison_df.to_csv(index=False),
+        file_name="human_machine_comparison.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
+
+
 def latest_export_folder() -> Path | None:
     if not EXPORTS_DIR.exists():
         return None
@@ -287,6 +371,27 @@ summary_data = load_json(summary_path)
 transcript_batch_data = load_json(transcript_batch_path)
 latest_export = latest_export_folder()
 questionnaire_df = load_csv(questionnaire_path)
+
+panel_param = st.query_params.get("panel", "full")
+if isinstance(panel_param, list):
+    panel_param = panel_param[0] if panel_param else "full"
+embed_human_machine = panel_param == "human-machine"
+
+if embed_human_machine:
+    st.markdown(
+        """
+        <style>
+        .block-container {
+            padding-top: 1rem;
+            max-width: 1200px;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+    st.title("Human vs Machine Cognitive Perception")
+    render_human_machine_section(questionnaire_df=questionnaire_df, features_df=features_df)
+    st.stop()
 
 st.markdown(
     """
@@ -672,79 +777,4 @@ with tab5:
         st.info("No export packages found yet. Run: cog-ethno-lab export-report-package --root . --output-dir exports")
 
 with tab6:
-    st.subheader("Human vs Machine Visual Comparison")
-    st.caption("Compares participant questionnaire responses (human) against audio feature summaries (machine).")
-
-    if questionnaire_df is None:
-        st.warning("No questionnaire file found. Add data/templates/user_questionnaire_responses.csv")
-    elif features_df is None:
-        st.warning("No machine features found. Run: cog-ethno-lab run-pipeline")
-    else:
-        human_group_col = "community" if "community" in questionnaire_df.columns else None
-        machine_group_col = "community" if "community" in features_df.columns else None
-
-        if not human_group_col:
-            st.warning("Questionnaire data needs a 'community' column for grouped comparison.")
-        elif not machine_group_col:
-            st.warning("Feature data needs a 'community' column for grouped comparison.")
-        else:
-            comparison_df = build_human_machine_comparison(questionnaire_df, features_df, group_column="community")
-            if comparison_df.empty:
-                st.info("Not enough overlapping numeric fields yet. Add questionnaire ratings (1-5) and rerun.")
-            else:
-                c_left, c_right = st.columns(2)
-                with c_left:
-                    st.markdown("**Human Composite by Community**")
-                    human_fig = px.bar(
-                        comparison_df,
-                        x="community",
-                        y="human_composite",
-                        color="community",
-                        title="Human Perception Composite (0-100)",
-                    )
-                    human_fig.update_layout(showlegend=False)
-                    st.plotly_chart(human_fig, use_container_width=True)
-
-                with c_right:
-                    st.markdown("**Machine Composite by Community**")
-                    machine_fig = px.bar(
-                        comparison_df,
-                        x="community",
-                        y="machine_composite",
-                        color="community",
-                        title="Machine Signal Composite (0-100)",
-                    )
-                    machine_fig.update_layout(showlegend=False)
-                    st.plotly_chart(machine_fig, use_container_width=True)
-
-                st.markdown("**Alignment Scatter: Human vs Machine**")
-                scatter = px.scatter(
-                    comparison_df,
-                    x="human_composite",
-                    y="machine_composite",
-                    color="community",
-                    size="alignment_gap",
-                    hover_data=["alignment_gap"],
-                    title="Community-level alignment between participant experience and machine features",
-                )
-                scatter.add_shape(
-                    type="line",
-                    x0=0,
-                    y0=0,
-                    x1=100,
-                    y1=100,
-                    line={"dash": "dash", "color": "gray"},
-                )
-                scatter.update_xaxes(range=[0, 100], title="Human Composite")
-                scatter.update_yaxes(range=[0, 100], title="Machine Composite")
-                st.plotly_chart(scatter, use_container_width=True)
-
-                st.markdown("**Alignment Table**")
-                st.dataframe(comparison_df, use_container_width=True)
-                st.download_button(
-                    "Download Human vs Machine Comparison CSV",
-                    data=comparison_df.to_csv(index=False),
-                    file_name="human_machine_comparison.csv",
-                    mime="text/csv",
-                    use_container_width=True,
-                )
+    render_human_machine_section(questionnaire_df=questionnaire_df, features_df=features_df)
