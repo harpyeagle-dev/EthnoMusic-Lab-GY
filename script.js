@@ -1681,6 +1681,10 @@ class ComprehensiveMusicAnalyzer {
 
     resetMusicalState() {
         this.lastKey = null;
+        this.energyHistory = [];
+        this.onsetHistory = [];
+        this.tempoHistory = [];
+        this.lastTempo = null;
     }
 
     initAnalyzer(audioContext) {
@@ -1793,6 +1797,10 @@ class ComprehensiveMusicAnalyzer {
 
     resetRhythmState() {
         this.prevLowFreqEnergy = null;
+        this.energyHistory = [];
+        this.onsetHistory = [];
+        this.tempoHistory = [];
+        this.lastTempo = null;
     }
 
     calculateLowFrequencyEnergy(frequencyData, lowFreqRatio = 0.05) {
