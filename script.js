@@ -1677,10 +1677,12 @@ class ComprehensiveMusicAnalyzer {
         this.waveform = null;
         this.spectrum = null;
         this.lastKey = null;
+        this.keyHistory = [];
     }
 
     resetMusicalState() {
         this.lastKey = null;
+        this.keyHistory = [];
         this.energyHistory = [];
         this.onsetHistory = [];
         this.tempoHistory = [];
@@ -1827,17 +1829,25 @@ class ComprehensiveMusicAnalyzer {
         const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
         const sampleRate = 44100;
         const nyquist = sampleRate / 2;
-        const fftSize = 2048; // Standard FFT size
         let pitchClassProfile = new Array(12).fill(0);
 
         // Major and minor key profiles (Krumhansl-Kessler)
         const majorProfile = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
         const minorProfile = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
 
+        const centeredMajorProfile = (() => {
+            const mean = majorProfile.reduce((a, b) => a + b, 0) / majorProfile.length;
+            return majorProfile.map(v => v - mean);
+        })();
+        const centeredMinorProfile = (() => {
+            const mean = minorProfile.reduce((a, b) => a + b, 0) / minorProfile.length;
+            return minorProfile.map(v => v - mean);
+        })();
+
         // Distribute energy across pitch classes with better frequency resolution
         for (let i = 1; i < frequencyData.length; i++) {
             // Skip if no energy
-            if (frequencyData[i] < 10) continue;
+            if (frequencyData[i] < 8) continue;
             
             // Calculate frequency for this bin
             const freq = (i * nyquist) / frequencyData.length;
@@ -1855,25 +1865,33 @@ class ComprehensiveMusicAnalyzer {
                 // Higher harmonics contribute less to key perception
                 const octave = Math.floor(midiNote / 12);
                 const harmonicWeight = 1 / (1 + Math.abs(octave - 5) * 0.3); // Peak around middle C
-                
-                pitchClassProfile[normalizedClass] += frequencyData[i] * harmonicWeight;
+
+                // Emphasize local spectral peaks to reduce broadband noise bias.
+                const prev = i > 1 ? frequencyData[i - 1] : frequencyData[i];
+                const next = i + 1 < frequencyData.length ? frequencyData[i + 1] : frequencyData[i];
+                const localPeakWeight = frequencyData[i] >= prev && frequencyData[i] >= next ? 1.5 : 1.0;
+
+                pitchClassProfile[normalizedClass] += frequencyData[i] * harmonicWeight * localPeakWeight;
             }
         }
 
         // Check if we have enough energy to determine key
         const totalEnergy = pitchClassProfile.reduce((a, b) => a + b, 0);
-        if (totalEnergy < 100) {
+        if (totalEnergy < 180) {
             return this.lastKey; // Return cached key (null if reset)
         }
 
         // Normalize pitch class profile
-        const maxPitch = Math.max(...pitchClassProfile);
-        if (maxPitch > 0) {
-            pitchClassProfile = pitchClassProfile.map(val => val / maxPitch);
+        const meanPitch = totalEnergy / 12;
+        pitchClassProfile = pitchClassProfile.map(val => val - meanPitch);
+        const norm = Math.sqrt(pitchClassProfile.reduce((sum, v) => sum + (v * v), 0));
+        if (norm > 0) {
+            pitchClassProfile = pitchClassProfile.map(val => val / norm);
         }
 
-        // Calculate correlation with all major and minor keys
+        // Calculate cosine similarity with all major and minor keys.
         let bestCorrelation = -Infinity;
+        let secondBestCorrelation = -Infinity;
         let bestKey = 'C';
         let bestMode = 'major';
 
@@ -1882,33 +1900,63 @@ class ComprehensiveMusicAnalyzer {
             let majorCorr = 0;
             for (let i = 0; i < 12; i++) {
                 const profileIdx = (i - tonic + 12) % 12;
-                majorCorr += pitchClassProfile[i] * majorProfile[profileIdx];
+                majorCorr += pitchClassProfile[i] * centeredMajorProfile[profileIdx];
             }
-            
+
             if (majorCorr > bestCorrelation) {
+                secondBestCorrelation = bestCorrelation;
                 bestCorrelation = majorCorr;
                 bestKey = notes[tonic];
                 bestMode = 'major';
+            } else if (majorCorr > secondBestCorrelation) {
+                secondBestCorrelation = majorCorr;
             }
 
             // Test minor key
             let minorCorr = 0;
             for (let i = 0; i < 12; i++) {
                 const profileIdx = (i - tonic + 12) % 12;
-                minorCorr += pitchClassProfile[i] * minorProfile[profileIdx];
+                minorCorr += pitchClassProfile[i] * centeredMinorProfile[profileIdx];
             }
-            
+
             if (minorCorr > bestCorrelation) {
+                secondBestCorrelation = bestCorrelation;
                 bestCorrelation = minorCorr;
                 bestKey = notes[tonic];
                 bestMode = 'minor';
+            } else if (minorCorr > secondBestCorrelation) {
+                secondBestCorrelation = minorCorr;
             }
+        }
+
+        // Confidence gating: avoid unstable jumps and weak estimates.
+        const confidenceGap = bestCorrelation - secondBestCorrelation;
+        if (bestCorrelation < 0.12 || confidenceGap < 0.03) {
+            return this.lastKey;
         }
 
         // Cache result
         const resultKey = bestMode === 'minor' ? `${bestKey}m` : bestKey;
-        this.lastKey = resultKey;
-        return resultKey;
+        this.keyHistory.push(resultKey);
+        if (this.keyHistory.length > 9) {
+            this.keyHistory.shift();
+        }
+
+        const counts = {};
+        for (const k of this.keyHistory) {
+            counts[k] = (counts[k] || 0) + 1;
+        }
+        let stableKey = resultKey;
+        let stableCount = 0;
+        for (const [k, count] of Object.entries(counts)) {
+            if (count > stableCount) {
+                stableKey = k;
+                stableCount = count;
+            }
+        }
+
+        this.lastKey = stableKey;
+        return stableKey;
     }
 
     // Calculate loudness in LUFS (Loudness Units relative to Full Scale)
