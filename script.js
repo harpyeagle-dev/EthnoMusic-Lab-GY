@@ -370,6 +370,8 @@ const rhythmPatterns = [
     }
 ];
 
+const DEFAULT_PRACTITIONER_PHOTO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><rect width="160" height="160" fill="%23d9d9d9"/><circle cx="80" cy="62" r="28" fill="%23b0b0b0"/><rect x="38" y="98" width="84" height="42" rx="20" fill="%23b0b0b0"/></svg>';
+
 const rhythmGeoLocations = [
     {
         rhythmId: 12,
@@ -380,7 +382,7 @@ const rhythmGeoLocations = [
         notes: 'Masquerade bands perform during holiday parades and community celebrations.',
         practitionerName: 'A. Persaud',
         practitionerBio: 'Community bandleader supporting masquerade presentations across Georgetown.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     },
     {
         rhythmId: 11,
@@ -391,7 +393,7 @@ const rhythmGeoLocations = [
         notes: 'Lokono Banchikilli performance center and cultural exchange site.',
         practitionerName: 'The Mariaba Players',
         practitionerBio: 'Lokono practitioner ensemble that documented and performed Banchikilli traditions.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     },
     {
         rhythmId: 2,
@@ -402,7 +404,7 @@ const rhythmGeoLocations = [
         notes: 'Calypso and related festival rhythms are active in community events.',
         practitionerName: 'M. Alexander',
         practitionerBio: 'Festival performer active in calypso and masquerade community events.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     },
     {
         rhythmId: 1,
@@ -413,7 +415,7 @@ const rhythmGeoLocations = [
         notes: 'Chutney rhythms are common in Indo-Guyanese celebrations.',
         practitionerName: 'S. Ramkarran',
         practitionerBio: 'Local chutney vocalist and rhythm accompanist at cultural gatherings.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     },
     {
         rhythmId: 4,
@@ -424,7 +426,7 @@ const rhythmGeoLocations = [
         notes: 'Soca culture appears in regional festivals and youth events.',
         practitionerName: 'K. Glasgow',
         practitionerBio: 'Youth soca choreographer and percussion facilitator in regional festivals.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     },
     {
         rhythmId: 7,
@@ -435,7 +437,7 @@ const rhythmGeoLocations = [
         notes: 'Bhangra-inspired beat patterns are used in Indo-Caribbean festivities.',
         practitionerName: 'P. Singh',
         practitionerBio: 'Indo-Caribbean music teacher introducing Bhangra beat patterns in school events.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     },
     {
         rhythmId: 9,
@@ -446,7 +448,7 @@ const rhythmGeoLocations = [
         notes: 'Son-clave pulse appears in modern fusion bands and dance spaces.',
         practitionerName: 'L. Roberts',
         practitionerBio: 'Fusion percussionist integrating son-clave phrasing into contemporary sets.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     },
     {
         rhythmId: 5,
@@ -457,7 +459,7 @@ const rhythmGeoLocations = [
         notes: 'African polyrhythm traditions are shared through village drumming events.',
         practitionerName: "Handel 'Brother Andy' Neptune",
         practitionerBio: 'Djembe practitioner supporting African social traditions in Buxton and Guyana.',
-        practitionerPhoto: 'assets/practitioner-default.svg'
+        practitionerPhoto: DEFAULT_PRACTITIONER_PHOTO
     }
 ];
 
@@ -483,15 +485,23 @@ const tabContents = document.querySelectorAll('.tab-content');
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded firing');
-    renderInstruments(currentInstruments);
-    setupLocalNotice();
-    setupEventListeners();
-    setupRhythmMapPlaceholder();
-    setupRhythmStudio();
-    setupQuizControls();
-    setupFavoritesAndComparison();
+    const safeInit = (name, fn) => {
+        try {
+            fn();
+        } catch (error) {
+            console.error(`Initialization failed for ${name}:`, error);
+        }
+    };
+
+    safeInit('renderInstruments', () => renderInstruments(currentInstruments));
+    safeInit('setupLocalNotice', setupLocalNotice);
+    safeInit('setupEventListeners', setupEventListeners);
+    safeInit('setupRhythmMapPlaceholder', setupRhythmMapPlaceholder);
+    safeInit('setupRhythmStudio', setupRhythmStudio);
+    safeInit('setupQuizControls', setupQuizControls);
+    safeInit('setupFavoritesAndComparison', setupFavoritesAndComparison);
     console.log('About to setup music analysis');
-    setupMusicAnalysis();
+    safeInit('setupMusicAnalysis', setupMusicAnalysis);
     console.log('Setup complete');
 });
 
@@ -675,7 +685,7 @@ function showRhythmMapSelection(rhythmId, locationMeta) {
     if (practitionerNameEl) practitionerNameEl.textContent = locationMeta.practitionerName || 'Community Practitioner';
     if (practitionerBioEl) practitionerBioEl.textContent = locationMeta.practitionerBio || 'Local performer/practitioner connected to this rhythm tradition.';
     if (practitionerPhotoEl) {
-        practitionerPhotoEl.src = locationMeta.practitionerPhoto || 'assets/practitioner-default.svg';
+        practitionerPhotoEl.src = locationMeta.practitionerPhoto || DEFAULT_PRACTITIONER_PHOTO;
         practitionerPhotoEl.alt = `${locationMeta.practitionerName || 'Community Practitioner'} photo`;
     }
     if (descEl) descEl.textContent = locationMeta.notes || rhythm.description;
@@ -1494,13 +1504,30 @@ let aggregateWaveform = null;
 let aggregateSpectrum = null;
 let aggregateFrames = 0;
 let lastAnalysisMetrics = null;
+let currentAnalysisSourceLabel = 'No source';
+let currentAnalysisMode = 'none';
 let mediaRecorder = null;
 let recordedChunks = [];
 let recordTimerInterval = null;
 let recordStartTime = null;
 
-// Ensure AudioContext is running with a guarded resume and recreation fallback
-async function ensureAudioContextRunning(existingCtx, label = '') {
+const MIN_FILE_READ_TIMEOUT_MS = 10000;
+const MAX_FILE_READ_TIMEOUT_MS = 45000;
+const MIN_DECODE_TIMEOUT_MS = 12000;
+const MAX_DECODE_TIMEOUT_MS = 45000;
+const AUDIO_CONTEXT_RESUME_TIMEOUT_MS = 30000;
+const UPLOAD_UI_WATCHDOG_TIMEOUT_MS = 120000;
+
+function getAdaptiveTimeout(fileSizeBytes, minMs, maxMs) {
+    // Scale timeout by file size so longer MP3/WAV files can decode on slower devices.
+    const bytesPerSecondBudget = 300000;
+    const estimatedMs = Math.ceil((fileSizeBytes / bytesPerSecondBudget) * 1000);
+    return Math.max(minMs, Math.min(maxMs, estimatedMs));
+}
+
+// Prime AudioContext synchronously inside a trusted click gesture.
+// Do not await this helper before opening the file picker.
+function primeAudioContextFromGesture(existingCtx, label = '') {
     const name = label ? ` ${label}` : '';
     let ctx = existingCtx;
 
@@ -1510,18 +1537,75 @@ async function ensureAudioContextRunning(existingCtx, label = '') {
     }
 
     if (ctx.state === 'suspended') {
+        try {
+            const resumeResult = ctx.resume();
+            console.log(`Audio context resume requested${name}`);
+
+            if (resumeResult && typeof resumeResult.then === 'function') {
+                resumeResult
+                    .then(() => {
+                        console.log(`Audio context resumed${name}`);
+                    })
+                    .catch((resumeError) => {
+                        console.warn(`Audio context resume request failed${name}:`, resumeError);
+                    });
+            }
+        } catch (resumeError) {
+            console.warn(`Audio context gesture prime failed${name}:`, resumeError);
+        }
+    }
+
+    return ctx;
+}
+
+function hasActiveAudioResumeGesture() {
+    if (navigator.userActivation && typeof navigator.userActivation.isActive === 'boolean') {
+        return navigator.userActivation.isActive;
+    }
+
+    if (typeof document.hasTransientActivation === 'boolean') {
+        return document.hasTransientActivation;
+    }
+
+    return false;
+}
+
+// Ensure AudioContext is running with a guarded resume and recreation fallback
+async function ensureAudioContextRunning(existingCtx, label = '', options = {}) {
+    const requireGesture = !!options.requireGesture;
+    const name = label ? ` ${label}` : '';
+    let ctx = existingCtx;
+
+    if (!ctx || ctx.state === 'closed') {
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        console.log(`Audio context created${name}`);
+    }
+
+    if (ctx.state === 'suspended') {
+        if (requireGesture && !hasActiveAudioResumeGesture()) {
+            throw new Error('Audio context requires direct user interaction to resume');
+        }
+
         console.log(`Resuming audio context${name}...`);
         try {
             await Promise.race([
                 ctx.resume(),
-                new Promise((_, reject) => setTimeout(() => reject(new Error('Audio context resume timeout')), 6000))
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Audio context resume timeout')), AUDIO_CONTEXT_RESUME_TIMEOUT_MS))
             ]);
             console.log(`Audio context resumed${name}`);
         } catch (resumeError) {
             console.warn(`Audio context resume failed${name}, recreating...`, resumeError);
             ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+            if (requireGesture && !hasActiveAudioResumeGesture()) {
+                throw new Error('Audio context requires direct user interaction to resume');
+            }
+
             try {
-                await ctx.resume();
+                await Promise.race([
+                    ctx.resume(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Audio context resume timeout')), AUDIO_CONTEXT_RESUME_TIMEOUT_MS))
+                ]);
                 console.log(`Audio context recreated and resumed${name}`);
             } catch (recreateError) {
                 console.error(`Audio context recreation failed${name}:`, recreateError);
@@ -1534,7 +1618,7 @@ async function ensureAudioContextRunning(existingCtx, label = '') {
 }
 
 // Decode with timeout to avoid hanging on unsupported codecs
-async function decodeWithTimeout(arrayBuffer, audioCtx, timeoutMs = 4000) {
+async function decodeWithTimeout(arrayBuffer, audioCtx, timeoutMs = 12000) {
     return new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
             reject(new Error('decodeAudioData timeout'));
@@ -1561,15 +1645,26 @@ const rhythmFps = 30;
 // Initialize Essentia
 async function initEssentia() {
     if (!essentia) {
+        const EssentiaCtor = window.Essentia;
+        const EssentiaExtractorCtor = window.EssentiaExtractor;
+
+        if (typeof EssentiaCtor !== 'function' || typeof EssentiaExtractorCtor !== 'function') {
+            console.info('Essentia.js unavailable, using basic analysis.');
+            essentia = null;
+            essentiaExtractor = null;
+            return null;
+        }
+
         try {
-            // Load Essentia from CDN
-            essentia = new window.Essentia();
+            // Load Essentia when constructors are available.
+            essentia = new EssentiaCtor();
             await essentia.initialize();
-            essentiaExtractor = new window.EssentiaExtractor(essentia);
+            essentiaExtractor = new EssentiaExtractorCtor(essentia);
             console.log('Essentia.js initialized successfully');
         } catch (e) {
             console.warn('Essentia.js loading failed, using basic analysis:', e);
             essentia = null;
+            essentiaExtractor = null;
         }
     }
     return essentia;
@@ -1581,6 +1676,11 @@ class ComprehensiveMusicAnalyzer {
         this.frequencyData = null;
         this.waveform = null;
         this.spectrum = null;
+        this.lastKey = null;
+    }
+
+    resetMusicalState() {
+        this.lastKey = null;
     }
 
     initAnalyzer(audioContext) {
@@ -1755,7 +1855,7 @@ class ComprehensiveMusicAnalyzer {
         // Check if we have enough energy to determine key
         const totalEnergy = pitchClassProfile.reduce((a, b) => a + b, 0);
         if (totalEnergy < 100) {
-            return this.lastKey || 'C'; // Return cached or default
+            return this.lastKey; // Return cached key (null if reset)
         }
 
         // Normalize pitch class profile
@@ -2449,6 +2549,7 @@ function resetRhythmicAnalysisState(resetMetrics = true) {
     rhythmLowEnergyHistory = [];
     if (musicAnalyzer) {
         musicAnalyzer.resetRhythmState();
+        if (resetMetrics) musicAnalyzer.resetMusicalState();
     }
 
     const canvas = document.getElementById('rhythmAnalysisCanvas');
@@ -2674,6 +2775,125 @@ function downloadBlob(blob, filename) {
     setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 
+function buildAnalysisMetadataSnapshot() {
+    if (!lastAnalysisMetrics) {
+        return null;
+    }
+
+    const durationText = document.getElementById('durationMetric')?.textContent || '--';
+    const meterText = document.getElementById('meterMetric')?.textContent || '--';
+    const pulseClarityText = document.getElementById('pulseClarityMetric')?.textContent || '--';
+    const swingText = document.getElementById('swingMetric')?.textContent || '--';
+    const syncopationText = document.getElementById('syncopationMetric')?.textContent || '--';
+
+    return {
+        generated_at: new Date().toISOString(),
+        source_label: currentAnalysisSourceLabel,
+        analysis_mode: currentAnalysisMode,
+        metrics: {
+            tempo_bpm: lastAnalysisMetrics.tempo,
+            key: lastAnalysisMetrics.key,
+            loudness_lufs: Number.isFinite(lastAnalysisMetrics.loudness)
+                ? Number(lastAnalysisMetrics.loudness.toFixed(2))
+                : null,
+            dominant_frequency_hz: lastAnalysisMetrics.dominantFreq,
+            energy_percent: lastAnalysisMetrics.energyPercent,
+            zero_crossing_rate: Number(lastAnalysisMetrics.zcr),
+            mfcc: lastAnalysisMetrics.mfcc,
+            spectral_centroid_hz: lastAnalysisMetrics.spectralCentroid,
+            duration_display: durationText,
+            rhythmic_meter: meterText,
+            pulse_clarity_display: pulseClarityText,
+            swing_ratio_display: swingText,
+            syncopation_display: syncopationText
+        },
+        sample_details: {
+            analyser_fft_size: analyser ? analyser.fftSize : null,
+            frequency_bin_count: analyser ? analyser.frequencyBinCount : null,
+            waveform_sample_count: musicAnalyzer?.dataArray ? musicAnalyzer.dataArray.length : null,
+            spectrum_sample_count: musicAnalyzer?.frequencyData ? musicAnalyzer.frequencyData.length : null,
+            aggregate_frames: aggregateFrames
+        }
+    };
+}
+
+function escapeCsvValue(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+
+    const str = String(value);
+    if (/[",\n\r]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+}
+
+function metadataSnapshotToCsv(snapshot) {
+    if (!snapshot) {
+        return '';
+    }
+
+    const row = {
+        generated_at: snapshot.generated_at,
+        source_label: snapshot.source_label,
+        analysis_mode: snapshot.analysis_mode,
+        tempo_bpm: snapshot.metrics?.tempo_bpm,
+        key: snapshot.metrics?.key,
+        loudness_lufs: snapshot.metrics?.loudness_lufs,
+        dominant_frequency_hz: snapshot.metrics?.dominant_frequency_hz,
+        energy_percent: snapshot.metrics?.energy_percent,
+        zero_crossing_rate: snapshot.metrics?.zero_crossing_rate,
+        mfcc: snapshot.metrics?.mfcc,
+        spectral_centroid_hz: snapshot.metrics?.spectral_centroid_hz,
+        duration_display: snapshot.metrics?.duration_display,
+        rhythmic_meter: snapshot.metrics?.rhythmic_meter,
+        pulse_clarity_display: snapshot.metrics?.pulse_clarity_display,
+        swing_ratio_display: snapshot.metrics?.swing_ratio_display,
+        syncopation_display: snapshot.metrics?.syncopation_display,
+        analyser_fft_size: snapshot.sample_details?.analyser_fft_size,
+        frequency_bin_count: snapshot.sample_details?.frequency_bin_count,
+        waveform_sample_count: snapshot.sample_details?.waveform_sample_count,
+        spectrum_sample_count: snapshot.sample_details?.spectrum_sample_count,
+        aggregate_frames: snapshot.sample_details?.aggregate_frames
+    };
+
+    const headers = Object.keys(row);
+    const values = headers.map((header) => escapeCsvValue(row[header]));
+    return `${headers.join(',')}\n${values.join(',')}\n`;
+}
+
+function downloadAnalysisMetadataJson() {
+    const snapshot = buildAnalysisMetadataSnapshot();
+    if (!snapshot) {
+        alert('No analysis metadata available yet. Start audio analysis first.');
+        return false;
+    }
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const jsonBlob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+    downloadBlob(jsonBlob, `analysis-metadata_${timestamp}.json`);
+    return true;
+}
+
+function downloadAnalysisMetadataCsv() {
+    const snapshot = buildAnalysisMetadataSnapshot();
+    if (!snapshot) {
+        alert('No analysis metadata available yet. Start audio analysis first.');
+        return false;
+    }
+
+    const csvContent = metadataSnapshotToCsv(snapshot);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const csvBlob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+    downloadBlob(csvBlob, `analysis-metadata_${timestamp}.csv`);
+    return true;
+}
+
+function downloadAnalysisMetadata() {
+    return downloadAnalysisMetadataJson();
+}
+
 function toWavBlob(audioBuffer) {
     const numChannels = audioBuffer.numberOfChannels;
     const sampleRate = audioBuffer.sampleRate;
@@ -2740,6 +2960,8 @@ function setupMusicAnalysis() {
     const recordMicBtn = document.getElementById('recordMicBtn');
     const recordTimerEl = document.getElementById('recordTimer');
     const analysisStatus = document.getElementById('analysisStatus');
+    let downloadMetadataBtn = document.getElementById('downloadMetadataBtn');
+    let downloadMetadataCsvBtn = document.getElementById('downloadMetadataCsvBtn');
     const downloadWaveformBtn = document.getElementById('downloadWaveformBtn');
     const downloadSpectrumBtn = document.getElementById('downloadSpectrumBtn');
 
@@ -2760,6 +2982,47 @@ function setupMusicAnalysis() {
 
     if (analysisStatus) {
         analysisStatus.textContent = 'Ready for upload.';
+    }
+
+    if (!downloadMetadataBtn || !downloadMetadataCsvBtn) {
+        const inputButtonsContainer = document.querySelector('.analyze-controls .input-buttons');
+        if (inputButtonsContainer) {
+            if (!downloadMetadataBtn) {
+                downloadMetadataBtn = document.createElement('button');
+                downloadMetadataBtn.className = 'control-btn';
+                downloadMetadataBtn.id = 'downloadMetadataBtn';
+                downloadMetadataBtn.textContent = 'Download Metadata';
+                inputButtonsContainer.appendChild(downloadMetadataBtn);
+            }
+
+            if (!downloadMetadataCsvBtn) {
+                downloadMetadataCsvBtn = document.createElement('button');
+                downloadMetadataCsvBtn.className = 'control-btn';
+                downloadMetadataCsvBtn.id = 'downloadMetadataCsvBtn';
+                downloadMetadataCsvBtn.textContent = 'Download Metadata CSV';
+                inputButtonsContainer.appendChild(downloadMetadataCsvBtn);
+            }
+
+            console.log('Metadata download buttons created dynamically');
+        }
+    }
+
+    if (downloadMetadataBtn) {
+        downloadMetadataBtn.addEventListener('click', () => {
+            const downloaded = downloadAnalysisMetadataJson();
+            if (downloaded && analysisStatus) {
+                analysisStatus.textContent = 'Metadata exported as JSON.';
+            }
+        });
+    }
+
+    if (downloadMetadataCsvBtn) {
+        downloadMetadataCsvBtn.addEventListener('click', () => {
+            const downloaded = downloadAnalysisMetadataCsv();
+            if (downloaded && analysisStatus) {
+                analysisStatus.textContent = 'Metadata exported as CSV.';
+            }
+        });
     }
 
     // Download button listeners
@@ -2817,6 +3080,11 @@ function setupMusicAnalysis() {
     uploadBtn.addEventListener('click', () => {
         console.log('Upload button clicked');
         fileInput.value = ''; // Reset file input to allow re-uploading same file
+
+        // Prime the context while we still have a trusted click gesture.
+        analysisAudioContext = primeAudioContextFromGesture(analysisAudioContext, '(upload)');
+
+        // Keep this synchronous so browser treats it as a direct user gesture.
         fileInput.click();
     });
 
@@ -2826,6 +3094,9 @@ function setupMusicAnalysis() {
             console.log('No file selected');
             return;
         }
+
+        currentAnalysisSourceLabel = file.name;
+        currentAnalysisMode = 'file-upload';
 
         if (analysisStatus) {
             analysisStatus.textContent = `Loading ${file.name}...`;
@@ -2856,6 +3127,26 @@ function setupMusicAnalysis() {
         uploadBtn.textContent = 'Loading...';
         uploadBtn.style.opacity = '0.6';
 
+        // Safety net for browser edge-cases where async audio operations stall.
+        const uploadUiWatchdog = setTimeout(() => {
+            if (uploadBtn.textContent !== 'Loading...') {
+                return;
+            }
+
+            console.warn('Upload UI watchdog triggered; resetting controls');
+            uploadBtn.textContent = 'Upload Audio File';
+            uploadBtn.style.opacity = '1';
+            uploadBtn.style.display = 'inline-block';
+            stopAudioBtn.style.display = 'none';
+            analysisActive = false;
+            lastFrameTime = 0;
+            lastHeavyUpdate = 0;
+
+            if (analysisStatus) {
+                analysisStatus.textContent = 'Upload timed out while processing. Please try again.';
+            }
+        }, UPLOAD_UI_WATCHDOG_TIMEOUT_MS);
+
         let fallbackAttempted = false;
 
         const playViaMediaElement = async (fileObj) => {
@@ -2867,16 +3158,17 @@ function setupMusicAnalysis() {
 
             fallbackAttempted = true;
 
-            // Ensure audio context exists and running
+            let canAnalyzeFallback = true;
+
+            // Ensure audio context exists and running; if not, still allow playback without analysis.
             try {
                 analysisAudioContext = await ensureAudioContextRunning(analysisAudioContext, '(fallback)');
             } catch (resumeErr) {
-                console.error('Fallback audio context failed:', resumeErr);
-                alert('Audio could not start (context error). Try another file or refresh.');
+                canAnalyzeFallback = false;
+                console.error('Fallback audio context failed; continuing with plain playback:', resumeErr);
                 if (analysisStatus) {
-                    analysisStatus.textContent = 'Audio context failed to start.';
+                    analysisStatus.textContent = 'Audio context unavailable. Playing without analysis.';
                 }
-                throw resumeErr;
             }
 
             if (currentAudioObjectUrl) {
@@ -2899,12 +3191,16 @@ function setupMusicAnalysis() {
                 }
             });
 
-            const source = analysisAudioContext.createMediaElementSource(audioElement);
-            currentAudioSource = source;
+            if (canAnalyzeFallback && analysisAudioContext) {
+                const source = analysisAudioContext.createMediaElementSource(audioElement);
+                currentAudioSource = source;
 
-            musicAnalyzer.initAnalyzer(analysisAudioContext);
-            source.connect(analyser);
-            analyser.connect(analysisAudioContext.destination);
+                musicAnalyzer.initAnalyzer(analysisAudioContext);
+                source.connect(analyser);
+                analyser.connect(analysisAudioContext.destination);
+            } else {
+                currentAudioSource = null;
+            }
 
             audioElement.addEventListener('loadedmetadata', () => {
                 if (!isNaN(audioElement.duration)) {
@@ -2933,10 +3229,14 @@ function setupMusicAnalysis() {
                 await audioElement.play();
                 uploadBtn.style.display = 'none';
                 stopAudioBtn.style.display = 'inline-block';
-                analysisActive = true;
-                updateAnalysisDisplay();
+                analysisActive = !!(canAnalyzeFallback && analysisAudioContext);
+                if (analysisActive) {
+                    updateAnalysisDisplay();
+                }
                 if (analysisStatus) {
-                    analysisStatus.textContent = 'Playing (media element fallback).';
+                    analysisStatus.textContent = analysisActive
+                        ? 'Playing (media element fallback).'
+                        : 'Playing (fallback, analysis unavailable).';
                 }
                 console.log('Audio file playing via media element, analysis started');
             } catch (playError) {
@@ -2952,14 +3252,17 @@ function setupMusicAnalysis() {
         };
 
         try {
+            const fileReadTimeoutMs = getAdaptiveTimeout(file.size, MIN_FILE_READ_TIMEOUT_MS, MAX_FILE_READ_TIMEOUT_MS);
+            const decodeTimeoutMs = getAdaptiveTimeout(file.size, MIN_DECODE_TIMEOUT_MS, MAX_DECODE_TIMEOUT_MS);
+
             console.log('Reading file data...');
             const arrayBuffer = await Promise.race([
                 file.arrayBuffer(),
                 new Promise((_, reject) => 
-                    setTimeout(() => reject(new Error('File read timeout')), 10000)
+                    setTimeout(() => reject(new Error('File read timeout')), fileReadTimeoutMs)
                 )
             ]);
-            console.log('File data read, size:', arrayBuffer.byteLength);
+            console.log('File data read, size:', arrayBuffer.byteLength, 'timeout:', fileReadTimeoutMs, 'ms');
             aggregateWaveform = null;
             aggregateSpectrum = null;
             aggregateFrames = 0;
@@ -2981,7 +3284,7 @@ function setupMusicAnalysis() {
             console.log('Decoding audio data...');
             let audioBuffer = null;
             try {
-                audioBuffer = await decodeWithTimeout(arrayBuffer, analysisAudioContext, 6000);
+                audioBuffer = await decodeWithTimeout(arrayBuffer, analysisAudioContext, decodeTimeoutMs);
                 console.log('Audio decoded successfully, duration:', audioBuffer.duration);
             } catch (decodeError) {
                 console.warn('decodeAudioData failed or timed out, using fallback media element:', decodeError);
@@ -3077,6 +3380,7 @@ function setupMusicAnalysis() {
             errorMsg += '\n\nTip: Try a smaller file (< 5MB) or convert to MP3 format.';
             alert(errorMsg);
         } finally {
+            clearTimeout(uploadUiWatchdog);
             uploadBtn.textContent = 'Upload Audio File';
             uploadBtn.style.opacity = '1';
         }
@@ -3215,6 +3519,9 @@ function setupMusicAnalysis() {
             if (recordMicBtn) {
                 recordMicBtn.disabled = false;
             }
+
+            currentAnalysisSourceLabel = 'Microphone';
+            currentAnalysisMode = 'microphone';
 
             document.getElementById('durationMetric').textContent = 'Live';
 
