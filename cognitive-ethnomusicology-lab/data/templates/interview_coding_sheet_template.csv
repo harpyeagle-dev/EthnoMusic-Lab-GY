@@ -1,0 +1,2 @@
+interview_id,segment_id,timestamp_start_sec,timestamp_end_sec,speaker_id,excerpt,primary_code,secondary_code,coder_id,confidence,notes
+INT-001,INT-001-seg-001,0.0,20.0,participant-1,,,,,3,

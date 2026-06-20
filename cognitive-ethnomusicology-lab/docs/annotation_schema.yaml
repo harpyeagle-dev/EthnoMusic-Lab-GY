@@ -1,0 +1,23 @@
+recording_id: ''
+community: ''
+location: ''
+event_context: ''
+participants:
+- name: ''
+  role: performer|audience|facilitator
+  age_group: ''
+  gender_identity: ''
+musical_dimensions:
+  meter: ''
+  tempo_feel: ''
+  instrumentation: []
+  vocal_style: ''
+cognitive_markers:
+  entrainment_notes: ''
+  memory_cues: ''
+  attention_events: ''
+  emotion_regulation: ''
+ethics:
+  consent_recorded: false
+  sharing_restrictions: ''
+  anonymization_notes: ''

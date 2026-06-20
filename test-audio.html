@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Audio Test</h1>
+    <button id="testBtn">Click to Test Audio</button>
+    <p id="status">Status: Not started</p>
+    <script>
+        let audioContext = null;
+        document.getElementById('testBtn').addEventListener('click', () => {
+            const status = document.getElementById('status');
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                status.textContent = 'Status: Audio context created - ' + audioContext.state;
+                
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        status.textContent = 'Status: Resumed - ' + audioContext.state;
+                        playSound();
+                    });
+                } else {
+                    playSound();
+                }
+                
+                function playSound() {
+                    const osc = audioContext.createOscillator();
+                    const gain = audioContext.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioContext.destination);
+                    osc.frequency.value = 440;
+                    gain.gain.setValueAtTime(0.5, audioContext.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+                    osc.start(audioContext.currentTime);
+                    osc.stop(audioContext.currentTime + 0.5);
+                    status.textContent = 'Status: Sound playing - ' + audioContext.state;
+                }
+            } catch (e) {
+                status.textContent = 'Error: ' + e.message;
+            }
+        });
+    </script>
+</body>
+</html>
