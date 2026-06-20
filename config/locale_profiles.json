@@ -1,0 +1,48 @@
+{
+  "guyana_coastal": {
+    "language": "Guyanese English",
+    "context_statement": "This module centers coastal Guyanese lived musical practice and intergenerational knowledge transfer.",
+    "target_communities": [
+      "Kabakaburi",
+      "Kamarang/Warawatta",
+      "Waramaong",
+      "Santa Rosa"
+    ],
+    "regional_examples": [
+      "Mashramani performance preparation",
+      "School-yard rhythm games adapted for Kabakaburi and Santa Rosa"
+    ],
+    "term_replacements": {
+      "students": "learners",
+      "teacher": "facilitator",
+      "classroom": "learning circle"
+    }
+  },
+  "guyana_hinterland": {
+    "language": "English with community language support",
+    "context_statement": "This module integrates hinterland community knowledge, land-based listening, and local instrument craft traditions.",
+    "target_communities": [
+      "Kabakaburi",
+      "Kamarang/Warawatta",
+      "Waramaong",
+      "Santa Rosa"
+    ],
+    "regional_examples": [
+      "Village celebration song cycles in Kamarang/Warawatta and Waramaong",
+      "Handmade percussion from locally available materials in Kabakaburi and Santa Rosa"
+    ],
+    "term_replacements": {
+      "students": "learners",
+      "assignment": "community practice task"
+    }
+  },
+  "caribbean_general": {
+    "language": "Caribbean English",
+    "context_statement": "This module is adapted for Caribbean musical lineages, emphasizing local identity and community transmission.",
+    "regional_examples": [
+      "Festival drumming ensembles",
+      "Carnival road rhythm adaptation exercises"
+    ],
+    "term_replacements": {}
+  }
+}

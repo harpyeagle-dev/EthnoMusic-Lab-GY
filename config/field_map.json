@@ -1,0 +1,13 @@
+{
+  "title": ["title", "module_title", "lesson_title", "name"],
+  "tradition": ["tradition", "genre", "heritage_form", "music_tradition"],
+  "community": ["community", "group", "origin_community"],
+  "region": ["region", "location", "district"],
+  "instruments": ["instruments", "instrument", "tools"],
+  "rhythms": ["rhythms", "rhythm_patterns", "meter"],
+  "learning_objectives": ["learning_objectives", "objectives", "outcomes"],
+  "activities": ["activities", "lesson_activities", "tasks"],
+  "assessment": ["assessment", "evaluation", "rubric"],
+  "language": ["language", "delivery_language"],
+  "source_url": ["source_url", "url", "link", "source"]
+}
