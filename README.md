@@ -112,6 +112,15 @@ This toolkit helps move source data (for example, exports from digitalheritagegy
 - One markdown lesson file per module in `data/processed/lessons/`
 - Optional per-community variants in `data/processed/curriculum.by_community.json`
 - Optional per-community lesson files in `data/processed/lessons_by_community/`
+- Optional curriculum sequence files in `data/processed/curriculum.sequence.json` and `data/processed/curriculum.sequence.md`
+- Optional four-unit plan files in `data/processed/curriculum.four_unit_plan.json` and `data/processed/curriculum.four_unit_plan.md`
+
+### Main Output Links
+
+- [Four-unit curriculum plan](data/processed/curriculum.four_unit_plan.md)
+- [Curriculum sequence](data/processed/curriculum.sequence.md)
+- [Normalized curriculum JSON](data/processed/curriculum.normalized.json)
+- [Source ingestion report](data/processed/source_ingestion_report.json)
 
 ### Quick Start
 
@@ -143,3 +152,32 @@ Current Guyana community set:
 - Kamarang/Warawatta
 - Waramaong
 - Santa Rosa
+
+### Website Migration For Four Communities
+
+Use a source manifest to ingest directly from community website pages.
+
+Example manifest: `config/community_sources.example.json`
+
+Run website migration:
+
+```bash
+python3 src/migrate.py \
+  --sources config/community_sources.example.json \
+  --output data/processed \
+  --locale guyana_hinterland \
+  --split-by-community
+```
+
+You can also combine exported data with website ingestion in one run:
+
+```bash
+python3 src/migrate.py \
+  --input data/raw/export.csv \
+  --sources config/community_sources.example.json \
+  --output data/processed \
+  --locale guyana_hinterland \
+  --split-by-community
+```
+
+If a website blocks bot traffic, use `local_html_path` in the source manifest to point to a saved HTML file for that community page.

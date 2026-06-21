@@ -1,0 +1,124 @@
+[
+  {
+    "title": "Kabakaburi Living Heritage Archive",
+    "tradition": "Community song and dance practice",
+    "community": "Kabakaburi",
+    "region": "Upper Pomeroon",
+    "instruments": [],
+    "rhythms": [],
+    "learning_objectives": [
+      "Document traditional songs, recordings, performances, and sonic heritage"
+    ],
+    "activities": [
+      "Explore traditional songs, recordings, performances, and sonic heritage"
+    ],
+    "assessment": "Learners synthesize source evidence into a culturally grounded performance or analysis task.",
+    "language": "Guyanese English",
+    "source_url": "https://digitalheritagegy.com/s/s/kabakaburi/page/home",
+    "locale_context_statement": "This module integrates hinterland community knowledge, land-based listening, and local instrument craft traditions.",
+    "target_communities": [
+      "Kabakaburi",
+      "Kamarang/Warawatta",
+      "Waramaong",
+      "Santa Rosa"
+    ],
+    "locale_regional_examples": [
+      "Village celebration song cycles in Kamarang/Warawatta and Waramaong",
+      "Handmade percussion from locally available materials in Kabakaburi and Santa Rosa"
+    ]
+  },
+  {
+    "title": "Kamarang Keng: Digital Heritage Archive",
+    "tradition": "Ceremonial and social music",
+    "community": "Kamarang/Warawatta",
+    "region": "Upper Mazaruni",
+    "instruments": [
+      "voice"
+    ],
+    "rhythms": [],
+    "learning_objectives": [
+      "Identify key musical traits documented in this community source",
+      "Connect musical practice to local cultural context"
+    ],
+    "activities": [
+      "Explore close reading of community source materials",
+      "Explore group rhythm and listening reflection activity"
+    ],
+    "assessment": "Learners synthesize source evidence into a culturally grounded performance or analysis task.",
+    "language": "Guyanese English",
+    "source_url": "https://digitalheritagegy.com/s/s/kamarang/page/home",
+    "locale_context_statement": "This module integrates hinterland community knowledge, land-based listening, and local instrument craft traditions.",
+    "target_communities": [
+      "Kabakaburi",
+      "Kamarang/Warawatta",
+      "Waramaong",
+      "Santa Rosa"
+    ],
+    "locale_regional_examples": [
+      "Village celebration song cycles in Kamarang/Warawatta and Waramaong",
+      "Handmade percussion from locally available materials in Kabakaburi and Santa Rosa"
+    ]
+  },
+  {
+    "title": "Waramadong Heritage Centre",
+    "tradition": "Intergenerational rhythm transmission",
+    "community": "Waramaong",
+    "region": "Upper Mazaruni",
+    "instruments": [
+      "voice"
+    ],
+    "rhythms": [],
+    "learning_objectives": [
+      "Identify key musical traits documented in this community source",
+      "Connect musical practice to local cultural context"
+    ],
+    "activities": [
+      "Explore stories, songs, traditions and community knowledge",
+      "Listen to elders, youth and community perspectives"
+    ],
+    "assessment": "Learners synthesize source evidence into a culturally grounded performance or analysis task.",
+    "language": "Guyanese English",
+    "source_url": "https://digitalheritagegy.com/s/s/waramadong/page/home",
+    "locale_context_statement": "This module integrates hinterland community knowledge, land-based listening, and local instrument craft traditions.",
+    "target_communities": [
+      "Kabakaburi",
+      "Kamarang/Warawatta",
+      "Waramaong",
+      "Santa Rosa"
+    ],
+    "locale_regional_examples": [
+      "Village celebration song cycles in Kamarang/Warawatta and Waramaong",
+      "Handmade percussion from locally available materials in Kabakaburi and Santa Rosa"
+    ]
+  },
+  {
+    "title": "Santa Rosa Cultural Archive",
+    "tradition": "Festival and village performance traditions",
+    "community": "Santa Rosa",
+    "region": "Moruca",
+    "instruments": [],
+    "rhythms": [],
+    "learning_objectives": [
+      "Document indigenous music traditions and performance",
+      "Document cultural practices and traditional knowledge"
+    ],
+    "activities": [
+      "Explore close reading of community source materials",
+      "Explore group rhythm and listening reflection activity"
+    ],
+    "assessment": "Learners synthesize source evidence into a culturally grounded performance or analysis task.",
+    "language": "Guyanese English",
+    "source_url": "https://digitalheritagegy.com/s/s/santa-rosa/page/welcome",
+    "locale_context_statement": "This module integrates hinterland community knowledge, land-based listening, and local instrument craft traditions.",
+    "target_communities": [
+      "Kabakaburi",
+      "Kamarang/Warawatta",
+      "Waramaong",
+      "Santa Rosa"
+    ],
+    "locale_regional_examples": [
+      "Village celebration song cycles in Kamarang/Warawatta and Waramaong",
+      "Handmade percussion from locally available materials in Kabakaburi and Santa Rosa"
+    ]
+  }
+]
