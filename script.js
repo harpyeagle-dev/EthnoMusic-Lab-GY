@@ -29,42 +29,7 @@ function closeSidebar() {
     overlay.classList.remove('active');
 }
 
-function switchTab(tabName) {
-    // Hide all tab contents
-    const tabContents = document.querySelectorAll('.tab-content');
-    tabContents.forEach(tab => tab.classList.remove('active'));
-    
-    // Show selected tab
-    const selectedTab = document.getElementById(tabName);
-    if (selectedTab) {
-        selectedTab.classList.add('active');
-    }
-    
-    // Update sidebar active state
-    const sidebarItems = document.querySelectorAll('.sidebar-item');
-    sidebarItems.forEach(item => item.classList.remove('active'));
-    
-    // Find and activate the clicked item
-    const activeItem = Array.from(sidebarItems).find(item => 
-        item.textContent.toLowerCase().includes(tabName.split('_').join(' ')) ||
-        item.onclick.toString().includes(tabName)
-    );
-    if (activeItem) {
-        activeItem.classList.add('active');
-    }
-    
-    // Show localhost notice only on Analyze Music tab
-    const localNotice = document.getElementById('localNotice');
-    if (tabName === 'analyze') {
-        if (localNotice) localNotice.classList.add('show');
-    } else {
-        if (localNotice) localNotice.classList.remove('show');
-    }
-    
-    closeSidebar();
-}
-
-// Initialize landing page on load
+// (Duplicate switchTab function removed - using the one defined later in the file)
 document.addEventListener('DOMContentLoaded', function() {
     // If visited before, go straight to app
     if (localStorage.getItem('visitedBefore') === 'true') {
@@ -662,6 +627,14 @@ function switchTab(tabName) {
             content.classList.add('active');
         }
     });
+
+    // Show localhost notice only on Analyze Music tab
+    const localNotice = document.getElementById('localNotice');
+    if (tabName === 'analyze') {
+        if (localNotice) localNotice.classList.add('show');
+    } else {
+        if (localNotice) localNotice.classList.remove('show');
+    }
 
     if (tabName === 'map') {
         if (!rhythmMapInitialized) {
