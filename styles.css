@@ -639,6 +639,50 @@ main {
     z-index: 1;
 }
 
+.narrative-section {
+    background: rgba(255, 255, 255, 0.6);
+    padding: 20px 28px;
+    margin: 20px 0;
+    border-left: 5px solid var(--secondary-color);
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+}
+
+.narrative-section h4 {
+    color: var(--primary-color);
+    font-size: 1.15em;
+    font-weight: 700;
+    margin-bottom: 12px;
+    margin-top: 0;
+}
+
+.narrative-section p {
+    color: var(--text-dark);
+    font-size: 1em;
+    margin-bottom: 12px;
+    font-weight: 500;
+    line-height: 1.6;
+}
+
+.narrative-section ul {
+    margin: 12px 0 12px 24px;
+    color: var(--text-dark);
+    font-size: 1em;
+    line-height: 1.7;
+    list-style: disc;
+}
+
+.narrative-section li {
+    margin-bottom: 8px;
+}
+
+.narrative-section strong {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
 a.control-btn.output-btn,
 button.control-btn.output-btn {
     display: inline-block;
