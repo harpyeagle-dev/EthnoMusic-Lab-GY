@@ -480,27 +480,58 @@ main {
 }
 
 .curriculum-cta {
-    background: #fff;
+    background: linear-gradient(135deg, rgba(44, 95, 45, 0.08), rgba(253, 197, 0, 0.08));
     border-radius: var(--border-radius);
-    padding: 20px 24px;
-    border: 1px dashed var(--secondary-color);
+    padding: 28px 32px;
+    border: 3px solid var(--primary-color);
+    box-shadow: 0 8px 20px rgba(44, 95, 45, 0.15);
+    margin: 20px 0;
 }
 
 .curriculum-cta h3 {
     color: var(--primary-color);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    font-size: 1.4em;
+    font-weight: 700;
+}
+
+.curriculum-cta > p {
+    color: #555;
+    font-size: 1.05em;
+    margin-bottom: 18px;
 }
 
 .output-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 12px;
+    gap: 15px;
+    margin-top: 20px;
+    justify-content: center;
 }
 
-a.control-btn.output-btn {
+a.control-btn.output-btn,
+button.control-btn.output-btn {
     display: inline-block;
     text-decoration: none;
+    padding: 16px 32px;
+    font-size: 1.1em;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--primary-color), #1e4620);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(44, 95, 45, 0.3);
+    transition: all 0.3s ease;
+    min-width: 200px;
+    text-align: center;
+}
+
+a.control-btn.output-btn:hover,
+button.control-btn.output-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(44, 95, 45, 0.4);
+    background: linear-gradient(135deg, #1e4620, var(--primary-color));
 }
 
 /* Rhythm Studio */
