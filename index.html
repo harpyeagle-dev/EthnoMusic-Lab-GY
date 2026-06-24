@@ -9,9 +9,51 @@
     <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
-    <div class="container">
+    <!-- Landing Page -->
+    <div id="landingPage" class="landing-page">
+        <div class="landing-overlay"></div>
+        <div class="landing-content">
+            <div class="landing-logo">🎵</div>
+            <h1 class="landing-title">EthnoMusic Lab GY</h1>
+            <p class="landing-subtitle">Explore the Rich Musical Heritage of Guyana and the World</p>
+            <p class="landing-description">An interactive platform for discovering instruments, analyzing rhythms, learning curriculum, and celebrating the diverse musical traditions that shape our communities.</p>
+            
+            <div class="landing-features">
+                <div class="feature-card">
+                    <div class="feature-icon">🎸</div>
+                    <h3>Instrument Explorer</h3>
+                    <p>Discover instruments from Guyana and around the world</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📚</div>
+                    <h3>Curriculum</h3>
+                    <p>Classroom-ready lessons centered on cultural heritage</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🥁</div>
+                    <h3>Rhythm Analysis</h3>
+                    <p>Explore rhythmic patterns and music across cultures</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Interactive Tools</h3>
+                    <p>Analyze music, compare styles, and test your knowledge</p>
+                </div>
+            </div>
+
+            <button class="landing-cta" onclick="enterApp()">Enter the Lab</button>
+            <p class="landing-footnote">A cognitive ethnomusicology resource for educators and learners</p>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" class="main-app" style="display: none;">
         <header>
-            <h1>EthnoMusic Lab GY</h1>
+            <div class="header-top">
+                <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+                <h1>EthnoMusic Lab GY</h1>
+                <div class="header-spacer"></div>
+            </div>
             <p class="subtitle">Explore the Rich Musical Heritage of Guyana and the World</p>
         </header>
 
@@ -26,19 +68,33 @@
             </div>
         </div>
 
-        <nav class="tabs">
-            <button class="tab-btn active" data-tab="explorer">Instrument Explorer</button>
-            <button class="tab-btn" data-tab="regions">Regional Music Curriculum</button>
-            <button class="tab-btn" data-tab="rhythms">Rhythm Patterns</button>
-            <button class="tab-btn" data-tab="map">Rhythm Map</button>
-            <button class="tab-btn" data-tab="analyze">Analyze Music</button>
-            <button class="tab-btn" data-tab="quiz">Quiz Game</button>
-            <button class="tab-btn" data-tab="compare">Compare</button>
-            <button class="tab-btn" data-tab="favorites">Favorites</button>
-            <button class="tab-btn" data-tab="about">About</button>
-        </nav>
+        <!-- Sidebar Navigation -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Navigation</h2>
+                <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="sidebar-item active" onclick="switchTab('explorer')">🎸 Instrument Explorer</button>
+                <button class="sidebar-item" onclick="switchTab('regions')">📚 Regional Curriculum</button>
+                <button class="sidebar-item" onclick="switchTab('rhythms')">🥁 Rhythm Patterns</button>
+                <button class="sidebar-item" onclick="switchTab('map')">🗺️ Rhythm Map</button>
+                <button class="sidebar-item" onclick="switchTab('analyze')">🎧 Analyze Music</button>
+                <button class="sidebar-item" onclick="switchTab('quiz')">🎯 Quiz Game</button>
+                <button class="sidebar-item" onclick="switchTab('compare')">⚖️ Compare</button>
+                <button class="sidebar-item" onclick="switchTab('favorites')">❤️ Favorites</button>
+                <button class="sidebar-item" onclick="switchTab('about')">ℹ️ About</button>
+            </nav>
+            <div class="sidebar-footer">
+                <button class="sidebar-item back-to-home" onclick="exitApp()">← Back to Home</button>
+            </div>
+        </div>
 
-        <main>
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <div class="container">
+            <main>
             <!-- Instrument Explorer Tab -->
             <section id="explorer" class="tab-content active">
                 <div class="search-bar">
@@ -593,14 +649,14 @@
             </section>
         </main>
 
-        <!-- Instrument Detail Modal (Outside main so it appears on all tabs) -->
-        <div class="instrument-detail" id="instrumentDetail" style="display: none;">
-            <button class="close-btn" id="closeDetail">×</button>
-            <div class="detail-actions">
-                <button class="action-btn" id="addToFavorites">Add to Favorites</button>
-                <button class="action-btn" id="addToCompare">Add to Compare</button>
-            </div>
-            <div class="detail-content">
+            <!-- Instrument Detail Modal (Outside main so it appears on all tabs) -->
+            <div class="instrument-detail" id="instrumentDetail" style="display: none;">
+                <button class="close-btn" id="closeDetail">×</button>
+                <div class="detail-actions">
+                    <button class="action-btn" id="addToFavorites">Add to Favorites</button>
+                    <button class="action-btn" id="addToCompare">Add to Compare</button>
+                </div>
+                <div class="detail-content">
                 <img id="detailImage" src="" alt="">
                 <h2 id="detailName"></h2>
                 <p class="detail-region" id="detailRegion"></p>
@@ -621,11 +677,13 @@
                     <p id="detailMaterials"></p>
                 </div>
             </div>
-        </div>
+            </div>
 
-        <footer>
-            <p>Copyright 2026 EthnoMusic Lab GY | Preserving Musical Heritage</p>
-        </footer>
+            <footer>
+                <p>Copyright 2026 EthnoMusic Lab GY | Preserving Musical Heritage</p>
+            </footer>
+        </div>
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>

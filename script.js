@@ -1,6 +1,78 @@
 // Ethnomusicology Database
 
 console.log('Script version: v23 - MASQUERADE UPDATE');
+
+// ========== LANDING PAGE & NAVIGATION ==========
+function enterApp() {
+    document.getElementById('landingPage').style.display = 'none';
+    document.getElementById('mainApp').style.display = 'block';
+    localStorage.setItem('visitedBefore', 'true');
+}
+
+function exitApp() {
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('landingPage').style.display = 'flex';
+    closeSidebar();
+}
+
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('active');
+    overlay.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.remove('active');
+    overlay.classList.remove('active');
+}
+
+function switchTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(tab => tab.classList.remove('active'));
+    
+    // Show selected tab
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.classList.add('active');
+    }
+    
+    // Update sidebar active state
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    sidebarItems.forEach(item => item.classList.remove('active'));
+    
+    // Find and activate the clicked item
+    const activeItem = Array.from(sidebarItems).find(item => 
+        item.textContent.toLowerCase().includes(tabName.split('_').join(' ')) ||
+        item.onclick.toString().includes(tabName)
+    );
+    if (activeItem) {
+        activeItem.classList.add('active');
+    }
+    
+    closeSidebar();
+}
+
+// Initialize landing page on load
+document.addEventListener('DOMContentLoaded', function() {
+    // If visited before, go straight to app
+    if (localStorage.getItem('visitedBefore') === 'true') {
+        // Default to showing landing page on page load
+        // Users can click "Enter the Lab" to enter
+    }
+    
+    // Update tab navigation to work with new sidebar
+    const tabButtons = document.querySelectorAll('[data-tab]');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            switchTab(this.dataset.tab);
+        });
+    });
+});
+
 const instrumentsDatabase = [
     // Guyanese Instruments
     {
