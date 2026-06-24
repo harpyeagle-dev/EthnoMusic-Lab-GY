@@ -471,6 +471,10 @@ header h1 {
     display: flex;
 }
 
+.local-notice.show {
+    display: flex;
+}
+
 .local-notice-text {
     font-size: 0.98rem;
     line-height: 1.5;

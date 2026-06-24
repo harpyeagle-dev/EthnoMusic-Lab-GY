@@ -53,6 +53,14 @@ function switchTab(tabName) {
         activeItem.classList.add('active');
     }
     
+    // Show localhost notice only on Analyze Music tab
+    const localNotice = document.getElementById('localNotice');
+    if (tabName === 'analyze') {
+        if (localNotice) localNotice.classList.add('show');
+    } else {
+        if (localNotice) localNotice.classList.remove('show');
+    }
+    
     closeSidebar();
 }
 
