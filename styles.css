@@ -358,7 +358,8 @@ body {
     flex: 1;
 }
 
-/* Mobile: Show sidebar toggle and hide sidebar by default */\n@media (max-width: 768px) {
+/* Mobile: Show sidebar toggle and hide sidebar by default */
+@media (max-width: 1024px) {
     .sidebar-toggle {
         display: flex;
         align-items: center;
