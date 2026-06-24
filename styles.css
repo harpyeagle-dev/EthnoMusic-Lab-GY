@@ -1436,3 +1436,90 @@ footer {
         content: '...';
     }
 }
+
+/* Curriculum Preview Styles */
+.curriculum-preview {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.95));
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: var(--shadow);
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.curriculum-preview pre {
+    overflow-x: auto;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.curriculum-preview code {
+    background: rgba(0, 0, 0, 0.08);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+}
+
+.curriculum-preview h1, 
+.curriculum-preview h2, 
+.curriculum-preview h3 {
+    color: var(--primary-color);
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+.curriculum-preview h1 { font-size: 1.8em; }
+.curriculum-preview h2 { font-size: 1.5em; }
+.curriculum-preview h3 { font-size: 1.2em; }
+
+.curriculum-preview em {
+    font-style: italic;
+    color: #555;
+}
+
+.curriculum-preview strong {
+    font-weight: bold;
+    color: #222;
+}
+
+.curriculum-preview p {
+    margin: 12px 0;
+}
+
+button.output-btn {
+    display: inline-block;
+    cursor: pointer;
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    margin: 5px;
+    border-radius: var(--border-radius);
+    transition: all 0.3s ease;
+}
+
+button.output-btn:hover {
+    background: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button.close-preview {
+    background: #999;
+    color: white;
+    padding: 5px 10px;
+    font-size: 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button.close-preview:hover {
+    background: #666;
+}

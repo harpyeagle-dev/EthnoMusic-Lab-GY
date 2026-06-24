@@ -3812,6 +3812,81 @@ function setupMusicAnalysis() {
     }
 }
 
+// ========== CURRICULUM FILE VIEWER ==========
+
+function loadCurriculumFile(filePath, fileTitle) {
+    fetch(filePath)
+        .then(response => {
+            if (!response.ok) throw new Error('File not found');
+            return response.text();
+        })
+        .then(content => {
+            displayCurriculumContent(content, filePath, fileTitle);
+        })
+        .catch(error => {
+            displayCurriculumContent(`Error loading file: ${error.message}`, filePath, fileTitle);
+        });
+}
+
+function displayCurriculumContent(content, filePath, fileTitle) {
+    const preview = document.getElementById('curriculumPreview');
+    const title = document.getElementById('previewTitle');
+    const contentDiv = document.getElementById('previewContent');
+    
+    title.textContent = fileTitle;
+    
+    if (filePath.endsWith('.json')) {
+        try {
+            const data = JSON.parse(content);
+            contentDiv.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+        } catch (e) {
+            contentDiv.innerHTML = '<pre>' + content + '</pre>';
+        }
+    } else if (filePath.endsWith('.md')) {
+        // Simple markdown to HTML conversion
+        const html = markdownToHtml(content);
+        contentDiv.innerHTML = html;
+    } else {
+        contentDiv.innerHTML = '<pre>' + content + '</pre>';
+    }
+    
+    preview.style.display = 'block';
+}
+
+function markdownToHtml(markdown) {
+    let html = markdown
+        // Headers
+        .replace(/^### (.*?)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.*?)$/gm, '<h2>$1</h2>')
+        .replace(/^# (.*?)$/gm, '<h1>$1</h1>')
+        // Bold
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__((.*?))__/g, '<strong>$1</strong>')
+        // Italic
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/_((.*?))_/g, '<em>$1</em>')
+        // Code
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        // Line breaks
+        .replace(/\n\n/g, '</p><p>')
+        .replace(/\n/g, '<br/>');
+    
+    // Wrap in paragraphs
+    html = '<p>' + html + '</p>';
+    
+    // Fix nested tags
+    html = html.replace(/<\/p><h/g, '<h')
+               .replace(/<\/h\d><p>/g, '<p>')
+               .replace(/<p><h/g, '<h')
+               .replace(/<p><\/p>/g, '');
+    
+    return html;
+}
+
+function closeCurriculumPreview() {
+    document.getElementById('curriculumPreview').style.display = 'none';
+}
+
 // Console welcome message
 
 // Console welcome message
