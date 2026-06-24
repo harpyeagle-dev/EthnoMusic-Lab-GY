@@ -491,6 +491,18 @@ main {
     margin-bottom: 10px;
 }
 
+.output-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+a.control-btn.output-btn {
+    display: inline-block;
+    text-decoration: none;
+}
+
 /* Rhythm Studio */
 .rhythm-studio {
     max-width: 900px;
