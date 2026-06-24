@@ -453,7 +453,7 @@ header h1 {
 }
 
 .local-notice {
-    display: none;
+    display: none !important;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
@@ -467,12 +467,8 @@ header h1 {
     flex-wrap: wrap;
 }
 
-.local-notice.is-visible {
-    display: flex;
-}
-
 .local-notice.show {
-    display: flex;
+    display: flex !important;
 }
 
 .local-notice-text {
